@@ -11,19 +11,20 @@ from sklearn.model_selection import StratifiedShuffleSplit
 
 class Pipeline():
     
-    
+    def __init__(self):
+        self.knn = KNeighborsClassifier(n_neighbors=5, n_jobs=2)
+        self.lda = LinearDiscriminantAnalysis()
+        self.randomforest = RandomForestClassifier(random_state=0, n_jobs=2, class_weight='balanced')
         
     def k_neighbors_classifier(self, X_train, y_train, X_test, y_test):
         time_start = time.time()
         
-        knn = KNeighborsClassifier(n_neighbors=5, n_jobs=2)
-        knn_model = knn.fit(X_train, y_train)
+#        knn = KNeighborsClassifier(n_neighbors=5, n_jobs=2)
+        knn_model = self.knn.fit(X_train, y_train)
         
         preds = knn_model.predict(X_test)
         score = knn_model.score(X_test, y_test)
-        
-    #     print_confusion_matrix()
-        
+                
         time_elapsed = time.time() - time_start
         return {'Score' : score, 'Time' : time_elapsed}    
     
@@ -41,14 +42,12 @@ class Pipeline():
     def lda_classifier(self, X_train, y_train, X_test, y_test):
         time_start = time.time()
         
-        lda = LinearDiscriminantAnalysis()
-        lda_model = lda.fit(X_train, y_train)
+#        lda = LinearDiscriminantAnalysis()
+        lda_model = self.lda.fit(X_train, y_train)
         
         preds = lda_model.predict(X_test)
         score = lda_model.score(X_test, y_test)
-        
-    #     print_confusion_matrix()
-    
+          
         time_elapsed = time.time() - time_start
         return {'Score' : score, 'Time' : time_elapsed}
     
@@ -131,14 +130,12 @@ class Pipeline():
         time_start = time.time()
         
     #     randomforest = RandomForestClassifier(random_state=0, n_jobs=2)
-        randomforest = RandomForestClassifier(random_state=0, n_jobs=2, class_weight='balanced')
-        rf_model = randomforest.fit(X_train, y_train)
+#        randomforest = RandomForestClassifier(random_state=0, n_jobs=2, class_weight='balanced')
+        rf_model = self.randomforest.fit(X_train, y_train)
     
         preds = rf_model.predict(X_test)
         score = rf_model.score(X_test, y_test)
-        
-    #     print_confusion_matrix()
-        
+               
         time_elapsed = time.time() - time_start
         return {'Score' : score, 'Time' : time_elapsed}
 #------------------------------------------------------------------------------------------------------------
