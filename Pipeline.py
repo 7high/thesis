@@ -51,6 +51,32 @@ class Pipeline():
         time_elapsed = time.time() - time_start
         return {'Score' : score, 'Time' : time_elapsed}
     
+    def resample(self, df, kind, category):
+        # Based on the kind of resampling, get the majority or minority class count
+        if kind == "under":
+            count = min(df[category].value_counts())
+        elif kind == "over":
+            count = max(df[category].value_counts())
+        else:
+            print "Invalid resampling"
+            return
+        
+        # Get all unique values in the given category
+        uniques = df[category].unique()
+        
+        # Resample all sub_dfs based on the unique values of the category
+        sub_dfs = []
+        for value in uniques:
+            if kind == "under":
+                sub_df = df[df[category] == value].sample(count)
+            elif kind == "over":
+                sub_df = df[df[category] == value].sample(count, replace=True)
+            sub_dfs.append(sub_df)
+            
+        # Recombine sampled sub_dfs into one sampled df
+        comb_sub_dfs = pd.concat(sub_dfs, axis=0)
+        return comb_sub_dfs
+    
     def one_vs_all_classify(self, df, features_list, y_list):
         time_start = time.time()
         
