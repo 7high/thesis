@@ -15,6 +15,23 @@ class Pipeline():
         self.knn = KNeighborsClassifier(n_neighbors=5, n_jobs=2)
         self.lda = LinearDiscriminantAnalysis()
         self.randomforest = RandomForestClassifier(random_state=0, n_jobs=2, class_weight='balanced')
+    
+    def calculate_cm_metrics(self, conf_matrix):
+        # Extract the counts
+        fp = np.array(conf_matrix.sum(axis=0) - np.diag(conf_matrix))
+        fn = np.array(conf_matrix.sum(axis=1) - np.diag(conf_matrix))
+        tp = np.diag(conf_matrix)
+        tn = np.array(conf_matrix.values.sum() - (fp + fn + tp))
+        
+        # Put data into dataframe for easy storage
+        cm_metrics = pd.DataFrame({'TP':tp, 'FP':fp, 'TN':tn, 'FN':fn}, index=list(conf_matrix.columns))
+    
+        # Calculate metrics
+        cm_metrics["Accuracy"] = (cm_metrics["TP"] + cm_metrics["TN"]) / cm_metrics.iloc[0:3].sum(axis=1)
+        cm_metrics["Precision"] = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FP"])
+        cm_metrics["Recall"] = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FN"])
+    
+        return cm_metrics
         
     def k_neighbors_classifier(self, X_train, y_train, X_test, y_test):
         time_start = time.time()
@@ -26,7 +43,7 @@ class Pipeline():
         score = knn_model.score(X_test, y_test)
                 
         time_elapsed = time.time() - time_start
-        return {'Score' : score, 'Time' : time_elapsed}    
+        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
     def init_srcDir(self):
         src_dir = os.path.dirname(self.SRC_DIR)
@@ -49,33 +66,55 @@ class Pipeline():
         score = lda_model.score(X_test, y_test)
           
         time_elapsed = time.time() - time_start
-        return {'Score' : score, 'Time' : time_elapsed}
+#        return {'Score' : score, 'Time' : time_elapsed}
+        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
-    def resample(self, df, kind, category):
-        # Based on the kind of resampling, get the majority or minority class count
-        if kind == "under":
-            count = min(df[category].value_counts())
-        elif kind == "over":
-            count = max(df[category].value_counts())
+    def make_conf_matrix(self, y_actual, y_pred, cm_type, labels=None):
+        """
+        Returns a confusion matrix.
+        
+        Parameters
+        ----------
+        y_actual: the true values for y
+        y_pred: the predicted values for y produced by the classifier
+        labels: the labels of y
+        
+        Returns
+        -------
+        df_confusion (df): a confusion matrix with the true positive, false positive, true negative and false negative counts
+        """
+        # Multiclass is used for multiple classes
+        if cm_type == 'multiclass':
+            # Decode device type from actual and predicted lists
+            df_actual = pd.DataFrame(y_actual, columns=labels, dtype=int)
+            df_preds = pd.DataFrame(y_pred, columns=labels, dtype=int)
+            
+        # Singleclass is used in binary classification
+        elif cm_type == 'singleclass':
+            # Create array for the non-class 
+            # i.e. if an observation is a positive class, the non-class will be negative
+            y_actual_nonclass = np.logical_not(y_actual).astype(int)        
+            y_pred_nonclass = np.logical_not(y_pred).astype(int)
+            
+            # Combine positive and nonclass into dfs
+            df_actual = pd.DataFrame({y_actual.name: y_actual, str('not' + y_actual.name):y_actual_nonclass})        
+            df_preds = pd.DataFrame({y_actual.name: y_pred, str('not' + y_actual.name):y_pred_nonclass})        
+    
         else:
-            print "Invalid resampling"
+            print "Invalid confusion matrix type"
             return
         
-        # Get all unique values in the given category
-        uniques = df[category].unique()
+        # Create column containing the response variable
+        df_actual["Response"] = (df_actual.iloc[:] == 1).idxmax(1)
+        df_preds["Response"] = (df_preds.iloc[:] == 1).idxmax(1)  
         
-        # Resample all sub_dfs based on the unique values of the category
-        sub_dfs = []
-        for value in uniques:
-            if kind == "under":
-                sub_df = df[df[category] == value].sample(count)
-            elif kind == "over":
-                sub_df = df[df[category] == value].sample(count, replace=True)
-            sub_dfs.append(sub_df)
+        # Put into Series for easy manipulation into crosstab
+        actual = pd.Series(df_actual["Response"], name="Actual")
+        pred = pd.Series(df_preds["Response"], name="Predicted")
+    
+        df_confusion = pd.crosstab(actual, pred, rownames=['Actual'], colnames=['Predicted'])
             
-        # Recombine sampled sub_dfs into one sampled df
-        comb_sub_dfs = pd.concat(sub_dfs, axis=0)
-        return comb_sub_dfs
+        return df_confusion
     
     def one_vs_all_classify(self, df, features_list, y_list):
         time_start = time.time()
@@ -163,7 +202,35 @@ class Pipeline():
         score = rf_model.score(X_test, y_test)
                
         time_elapsed = time.time() - time_start
-        return {'Score' : score, 'Time' : time_elapsed}
+#        return {'Score' : score, 'Time' : time_elapsed}
+        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
+    
+    def resample(self, df, kind, category):
+        # Based on the kind of resampling, get the majority or minority class count
+        if kind == "under":
+            count = min(df[category].value_counts())
+        elif kind == "over":
+            count = max(df[category].value_counts())
+        else:
+            print "Invalid resampling"
+            return
+        
+        # Get all unique values in the given category
+        uniques = df[category].unique()
+        
+        # Resample all sub_dfs based on the unique values of the category
+        sub_dfs = []
+        for value in uniques:
+            if kind == "under":
+                sub_df = df[df[category] == value].sample(count)
+            elif kind == "over":
+                sub_df = df[df[category] == value].sample(count, replace=True)
+            sub_dfs.append(sub_df)
+            
+        # Recombine sampled sub_dfs into one sampled df
+        comb_sub_dfs = pd.concat(sub_dfs, axis=0)
+        return comb_sub_dfs
+    
 #------------------------------------------------------------------------------------------------------------
 class BLEPipeline(Pipeline):
     # Global Variables    
