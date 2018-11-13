@@ -83,13 +83,13 @@ class Pipeline():
         -------
         df_confusion (df): a confusion matrix with the true positive, false positive, true negative and false negative counts
         """
-        # Multiclass is used for multiple classes
+        # Multiclass is mostly used for testing
         if cm_type == 'multiclass':
             # Decode device type from actual and predicted lists
             df_actual = pd.DataFrame(y_actual, columns=labels, dtype=int)
             df_preds = pd.DataFrame(y_pred, columns=labels, dtype=int)
             
-        # Singleclass is used in binary classification
+        # Binary is used when comparing between only two classes
         elif cm_type == 'binary':
             # Create array for the non-class 
             # i.e. if an observation is a positive class, the non-class will be negative
@@ -118,8 +118,33 @@ class Pipeline():
         actual = np.array(df_actual["Response"])
         pred = np.array(df_preds["Response"])        
         
+        # Create crosstab
         df_confusion = pd.crosstab(actual, pred, rownames=['Actual'], colnames=['Predicted'])
-            
+
+        # Fix non-square confusion matrices
+        if len(df_confusion.columns) != len(df_confusion.index):
+            # Get set of column and index entries
+            columns = set(df_confusion.columns)
+            rows = set(df_confusion.index)
+
+            # Find which entries are missing from both columns and indices
+            missing_columns = rows - columns
+            missing_rows = columns - rows
+
+            # Create array of padded zeros
+            len_longSide = max(len(columns), len(rows))
+            zeros = np.zeros((len_longSide,1), dtype=np.int)    
+
+            # Fill missing column/rows
+            for column in missing_columns:
+                df_confusion[column] = zeros
+            for row in missing_rows:
+                # For rows, transpose df first to allow easy concat
+                temp_cm = df_confusion.transpose()
+                temp_cm[row] = zeros
+                df_confusion = temp_cm.transpose()            
+        
+        
         return df_confusion
     
     def one_vs_all_classify(self, df, features_list, y_list):
@@ -145,12 +170,7 @@ class Pipeline():
             lda_clf = self.lda_classifier(X_train, y_train, X_test, y_test)
     
             time_elapsed_clf = time.time() - time_start_clf
-    
-            print "Device Type:", device_type
-#            print "Random Forest Score:", rf_clf['Score'], "Time: ", rf_clf['Time']
-#            print "KNN Score:", knn_clf['Score'], "Time: ", knn_clf['Time']
-#            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
-            
+
             # Get confusion matrices
             rf_cm = self.make_conf_matrix(y_test, rf_clf['Pred'], cm_type='binary')
             knn_cm = self.make_conf_matrix(y_test, knn_clf['Pred'], cm_type='binary')
@@ -161,12 +181,22 @@ class Pipeline():
             knn_metrics = self.calculate_cm_metrics(knn_cm)
             lda_metrics = self.calculate_cm_metrics(lda_cm)
             
-            print "RF Confusion Matrix\n", rf_cm   
-            print "RF Metrics\n", rf_metrics            
-            print "KNN Confusion Matrix\n", knn_cm
-            print "KNN Metrics\n", knn_metrics
-            print "LDA Confusion Matrix\n", lda_cm
-            print "LDA Metrics\n", lda_metrics
+#            print "Random Forest Score:", rf_clf['Score'], "Time: ", rf_clf['Time']
+#            print "KNN Score:", knn_clf['Score'], "Time: ", knn_clf['Time']
+#            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
+                        #Print outs
+            print "Device Type:", device_type
+            print "--------------------------"
+            print "--------------------------"
+            print "RF Confusion Matrix\n", rf_cm, '\n'   
+            print "RF Metrics\n", rf_metrics, '\n'      
+            print "--------------------------"
+            print "KNN Confusion Matrix\n", knn_cm, '\n'
+            print "KNN Metrics\n", knn_metrics, '\n'
+            print "--------------------------"
+            print "LDA Confusion Matrix\n", lda_cm, '\n'
+            print "LDA Metrics\n", lda_metrics, '\n'
+            print "--------------------------"
             
             print "Total time (classifiers):", time_elapsed_clf
             print ""
@@ -203,8 +233,6 @@ class Pipeline():
     
             time_elapsed_clf = time.time() - time_start_clf
     
-            #Print out confusion matrix metrics
-            print "Device Pair:", device_pair
             
             # Get confusion matrices
             rf_cm = self.make_conf_matrix(y_test, rf_clf['Pred'], cm_type='binary', labels=device_pair)
@@ -216,12 +244,19 @@ class Pipeline():
             knn_metrics = self.calculate_cm_metrics(knn_cm)
             lda_metrics = self.calculate_cm_metrics(lda_cm)
             
-            print "RF Confusion Matrix\n", rf_cm   
-            print "RF Metrics\n", rf_metrics            
-            print "KNN Confusion Matrix\n", knn_cm
-            print "KNN Metrics\n", knn_metrics
-            print "LDA Confusion Matrix\n", lda_cm
-            print "LDA Metrics\n", lda_metrics
+            #Print outs
+            print "Device Pair:", device_pair
+            print "--------------------------"
+            print "--------------------------"
+            print "RF Confusion Matrix\n", rf_cm, '\n'   
+            print "RF Metrics\n", rf_metrics, '\n'      
+            print "--------------------------"
+            print "KNN Confusion Matrix\n", knn_cm, '\n'
+            print "KNN Metrics\n", knn_metrics, '\n'
+            print "--------------------------"
+            print "LDA Confusion Matrix\n", lda_cm, '\n'
+            print "LDA Metrics\n", lda_metrics, '\n'
+            print "--------------------------"
             
             print "Total time (classifiers):", time_elapsed_clf
             print ""
