@@ -90,16 +90,22 @@ class Pipeline():
             df_preds = pd.DataFrame(y_pred, columns=labels, dtype=int)
             
         # Singleclass is used in binary classification
-        elif cm_type == 'singleclass':
+        elif cm_type == 'binary':
             # Create array for the non-class 
             # i.e. if an observation is a positive class, the non-class will be negative
             y_actual_nonclass = np.logical_not(y_actual).astype(int)        
             y_pred_nonclass = np.logical_not(y_pred).astype(int)
             
             # Combine positive and nonclass into dfs
-            df_actual = pd.DataFrame({y_actual.name: y_actual, str('not' + y_actual.name):y_actual_nonclass})        
-            df_preds = pd.DataFrame({y_actual.name: y_pred, str('not' + y_actual.name):y_pred_nonclass})        
-    
+            if labels != None:
+                # Use labels
+                df_actual = pd.DataFrame({labels[0]: y_actual, labels[1]:y_actual_nonclass})        
+                df_preds = pd.DataFrame({labels[0]: y_pred, labels[1]:y_pred_nonclass})
+            else:
+                # Use "not" label
+                df_actual = pd.DataFrame({y_actual.name: y_actual, str('not' + y_actual.name):y_actual_nonclass})        
+                df_preds = pd.DataFrame({y_actual.name: y_pred, str('not' + y_actual.name):y_pred_nonclass})
+
         else:
             print "Invalid confusion matrix type"
             return
@@ -108,10 +114,10 @@ class Pipeline():
         df_actual["Response"] = (df_actual.iloc[:] == 1).idxmax(1)
         df_preds["Response"] = (df_preds.iloc[:] == 1).idxmax(1)  
         
-        # Put into Series for easy manipulation into crosstab
-        actual = pd.Series(df_actual["Response"], name="Actual")
-        pred = pd.Series(df_preds["Response"], name="Predicted")
-    
+        # Put into numpy array for easy manipulation into crosstab
+        actual = np.array(df_actual["Response"])
+        pred = np.array(df_preds["Response"])        
+        
         df_confusion = pd.crosstab(actual, pred, rownames=['Actual'], colnames=['Predicted'])
             
         return df_confusion
@@ -141,9 +147,27 @@ class Pipeline():
             time_elapsed_clf = time.time() - time_start_clf
     
             print "Device Type:", device_type
-            print "Random Forest Score:", rf_clf['Score'], "Time: ", rf_clf['Time']
-            print "KNN Score:", knn_clf['Score'], "Time: ", knn_clf['Time']
-            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
+#            print "Random Forest Score:", rf_clf['Score'], "Time: ", rf_clf['Time']
+#            print "KNN Score:", knn_clf['Score'], "Time: ", knn_clf['Time']
+#            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
+            
+            # Get confusion matrices
+            rf_cm = self.make_conf_matrix(y_test, rf_clf['Pred'], cm_type='binary')
+            knn_cm = self.make_conf_matrix(y_test, knn_clf['Pred'], cm_type='binary')
+            lda_cm = self.make_conf_matrix(y_test, lda_clf['Pred'], cm_type='binary')
+            
+            # Calculate metrics
+            rf_metrics = self.calculate_cm_metrics(rf_cm)
+            knn_metrics = self.calculate_cm_metrics(knn_cm)
+            lda_metrics = self.calculate_cm_metrics(lda_cm)
+            
+            print "RF Confusion Matrix\n", rf_cm   
+            print "RF Metrics\n", rf_metrics            
+            print "KNN Confusion Matrix\n", knn_cm
+            print "KNN Metrics\n", knn_metrics
+            print "LDA Confusion Matrix\n", lda_cm
+            print "LDA Metrics\n", lda_metrics
+            
             print "Total time (classifiers):", time_elapsed_clf
             print ""
         
@@ -171,25 +195,39 @@ class Pipeline():
             y_test = df_test[pos_device_type]
             
             time_start_clf = time.time()
-    
+            
+            # Run classifiers
             rf_clf = self.random_forest_classifier(X_train, y_train, X_test, y_test)
             knn_clf = self.k_neighbors_classifier(X_train, y_train, X_test, y_test)
             lda_clf = self.lda_classifier(X_train, y_train, X_test, y_test)
     
             time_elapsed_clf = time.time() - time_start_clf
     
+            #Print out confusion matrix metrics
             print "Device Pair:", device_pair
-            print "Random Forest Score:", rf_clf['Score'], "Time: ", rf_clf['Time']
-            print "KNN Score:", knn_clf['Score'], "Time: ", knn_clf['Time']
-            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
+            
+            # Get confusion matrices
+            rf_cm = self.make_conf_matrix(y_test, rf_clf['Pred'], cm_type='binary', labels=device_pair)
+            knn_cm = self.make_conf_matrix(y_test, knn_clf['Pred'], cm_type='binary', labels=device_pair)
+            lda_cm = self.make_conf_matrix(y_test, lda_clf['Pred'], cm_type='binary', labels=device_pair)
+            
+            # Calculate metrics
+            rf_metrics = self.calculate_cm_metrics(rf_cm)
+            knn_metrics = self.calculate_cm_metrics(knn_cm)
+            lda_metrics = self.calculate_cm_metrics(lda_cm)
+            
+            print "RF Confusion Matrix\n", rf_cm   
+            print "RF Metrics\n", rf_metrics            
+            print "KNN Confusion Matrix\n", knn_cm
+            print "KNN Metrics\n", knn_metrics
+            print "LDA Confusion Matrix\n", lda_cm
+            print "LDA Metrics\n", lda_metrics
+            
             print "Total time (classifiers):", time_elapsed_clf
             print ""
         
         print "Total time (one vs one_classify):", time.time() - time_start
         print ""        
-
-    def print_confusion_matrix(self):
-        return "print_confusion_matrix goes here"
 
     def random_forest_classifier(self, X_train, y_train, X_test, y_test):
         time_start = time.time()
@@ -234,8 +272,8 @@ class Pipeline():
 #------------------------------------------------------------------------------------------------------------
 class BLEPipeline(Pipeline):
     # Global Variables    
-    devices_devicenames = ['August1', 'August2', 'Door1', 'Door2', 'Energy1', 
-                           'Energy2', 'Kevo', 'Push', 'Room1', 'Room2', 'Weather']
+    devices_devicenames = ['August1', 'August2', 'Door1', 'Door2', 
+                           'Kevo', 'Push', 'Room1', 'Room2', 'Weather']
     devices_publicaddrs = ['Home1', 'Home2']
     
     id_devicenames = [['Kevo','Unikey'],
@@ -244,8 +282,6 @@ class BLEPipeline(Pipeline):
                     's',
                     'Aug',
                     'L402EL4',
-                    'Eve Energy 51C0',
-                    'Eve Energy 556E',
                     'Eve Weather 943D',
                     'Eve Room 8F24',
                     'Eve Room 4A04']
@@ -261,8 +297,6 @@ class BLEPipeline(Pipeline):
                     'August2': 'Aug',
                     'Door1': 'Eve Door 91B3',
                     'Door2': 'Eve Door DC42',
-                    'Energy1': 'Eve Energy 556E',
-                    'Energy2': 'Eve Energy 51C0',
                     'Kevo': ['Kevo', 'Unikey'],
                     'Push': 's',
                     'Room1': 'Eve Room 4A04',
@@ -273,8 +307,6 @@ class BLEPipeline(Pipeline):
     NAMES_DEVICES = {'Aug': 'August2',
                      'Eve Door 91B3': 'Door1',
                      'Eve Door DC42': 'Door2',
-                     'Eve Energy 51C0': 'Energy2',
-                     'Eve Energy 556E': 'Energy1',
                      'Eve Room 4A04': 'Room1',
                      'Eve Room 8F24': 'Room2',
                      'Eve Weather 943D': 'Weather',
@@ -287,8 +319,6 @@ class BLEPipeline(Pipeline):
                     'August2': 'lock',
                     'Door1': 'door',
                     'Door2': 'door',
-                    'Energy1': 'plug',
-                    'Energy2': 'plug',
                     'Home1': 'door',
                     'Home2': 'door',
                     'Kevo': 'lock',
@@ -301,8 +331,6 @@ class BLEPipeline(Pipeline):
                      'August2': 'test',
                      'Door1': 'train',
                      'Door2': 'test',
-                     'Energy1': 'train',
-                     'Energy2': 'train',
                      'Home1': 'train',
                      'Home2': 'train',
                      'Kevo': 'train',
