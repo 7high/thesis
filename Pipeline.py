@@ -148,7 +148,22 @@ class Pipeline():
         
         return df_confusion
     
-    def one_vs_all_classify(self, df, features_list, y_list):
+    def printout_cm_metrics(self, device_type, cm_list, matrices, metrics):
+        print "Device Type:", device_type
+        print "--------------------------"
+        print "--------------------------"
+        
+        for i, cm in enumerate(cm_list):
+            print cm_list
+            print ""
+            print "Confusion Matrix"
+            print matrices[i]
+            print ""
+            print "Metrics"
+            print metrics[i]
+            print "--------------------------"
+    
+    def one_vs_all_classify(self, df, features_list, y_list, output='print'):
         time_start = time.time()
         
         onevsall_dict = {}
@@ -188,31 +203,36 @@ class Pipeline():
 #            print "KNN Score:", knn_clf['Score'], "Time: ", knn_clf['Time']
 #            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
             
-            #Print outs
-            print "Device Type:", device_type
-            print "--------------------------"
-            print "--------------------------"
-            print "RF Confusion Matrix\n", rf_cm, '\n'   
-            print "RF Metrics\n", rf_metrics, '\n'      
-            print "--------------------------"
-            print "KNN Confusion Matrix\n", knn_cm, '\n'
-            print "KNN Metrics\n", knn_metrics, '\n'
-            print "--------------------------"
-            print "LDA Confusion Matrix\n", lda_cm, '\n'
-            print "LDA Metrics\n", lda_metrics, '\n'
-            print "--------------------------"
+            if output == 'print':
+                printout_cm_metrics(device_type,['RF','KNN','LDA'],[rf_cm, knn_cm, lda_cm],[rf_metrics, knn_metrics, lda_metrics])
+                #Print outs
+#                print "Device Type:", device_type
+#                print "--------------------------"
+#                print "--------------------------"
+#                print "RF Confusion Matrix\n", rf_cm, '\n'   
+#                print "RF Metrics\n", rf_metrics, '\n'      
+#                print "--------------------------"
+#                print "KNN Confusion Matrix\n", knn_cm, '\n'
+#                print "KNN Metrics\n", knn_metrics, '\n'
+#                print "--------------------------"
+#                print "LDA Confusion Matrix\n", lda_cm, '\n'
+#                print "LDA Metrics\n", lda_metrics, '\n'
+#                print "--------------------------"
+                
+                print "Total time (classifiers):", time_elapsed_clf
+                print ""
+            elif output == 'file':
+                #TODO: Add option to output to file
             
-            print "Total time (classifiers):", time_elapsed_clf
-            print ""
-            
-            onevsall_dict[device_type] = {'RF': {'CM': rf_cm, 'Metrics':rf_metrics},
-                                          'KNN': {'CM': knn_cm, 'Metrics':knn_metrics},
-                                          'LDA': {'CM': lda_cm, 'Metrics':lda_metrics}}
+            onevsall_dict[device_type] = {'RF': {'CM': rf_cm, 'Metrics':rf_metrics, 'Time':time_elapsed_clf},
+                                          'KNN': {'CM': knn_cm, 'Metrics':knn_metrics, 'Time':time_elapsed_clf},
+                                          'LDA': {'CM': lda_cm, 'Metrics':lda_metrics, 'Time':time_elapsed_clf}}
         
-        print "Total time (one vs all_classify):", time.time() - time_start
+        total_time = time.time() - time_start
+        print "Total time (one vs all_classify):", total_time
         print ""    
         
-        return onevsall_dict
+        return onevsall_dict, total_time
         
         
     def one_vs_one_classify(self, df, features_list, y_list):
