@@ -204,7 +204,10 @@ class Pipeline():
 #            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
             
             if output == 'print':
-                printout_cm_metrics(device_type,['RF','KNN','LDA'],[rf_cm, knn_cm, lda_cm],[rf_metrics, knn_metrics, lda_metrics])
+                printout_cm_metrics(device_type,
+                                    ['RF','KNN','LDA'],
+                                    [rf_cm, knn_cm, lda_cm],
+                                    [rf_metrics, knn_metrics, lda_metrics])
                 #Print outs
 #                print "Device Type:", device_type
 #                print "--------------------------"
