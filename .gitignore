@@ -1,0 +1,11 @@
+# Directories
+BLE_Source/
+Wifi_Source/
+.ipynb_checkpoints/
+
+# Files
+*.py
+*.pyc
+*.csv
+
+
