@@ -66,7 +66,7 @@ class Pipeline():
         score = lda_model.score(X_test, y_test)
           
         time_elapsed = time.time() - time_start
-#        return {'Score' : score, 'Time' : time_elapsed}
+        
         return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
     def make_conf_matrix(self, y_actual, y_pred, cm_type, labels=None):
@@ -90,6 +90,7 @@ class Pipeline():
             df_preds = pd.DataFrame(y_pred, columns=labels, dtype=int)
             
         # Binary is used when comparing between only two classes
+        # Used in one vs one & one vs all classification schemes
         elif cm_type == 'binary':
             # Create array for the non-class 
             # i.e. if an observation is a positive class, the non-class will be negative
@@ -102,9 +103,9 @@ class Pipeline():
                 df_actual = pd.DataFrame({labels[0]: y_actual, labels[1]:y_actual_nonclass})        
                 df_preds = pd.DataFrame({labels[0]: y_pred, labels[1]:y_pred_nonclass})
             else:
-                # Use "not" label
-                df_actual = pd.DataFrame({y_actual.name: y_actual, str('not' + y_actual.name):y_actual_nonclass})        
-                df_preds = pd.DataFrame({y_actual.name: y_pred, str('not' + y_actual.name):y_pred_nonclass})
+                # Use "rest" label
+                df_actual = pd.DataFrame({y_actual.name: y_actual, 'rest': y_actual_nonclass})        
+                df_preds = pd.DataFrame({y_actual.name: y_pred, 'rest':y_pred_nonclass})
 
         else:
             print "Invalid confusion matrix type"
@@ -150,6 +151,8 @@ class Pipeline():
     def one_vs_all_classify(self, df, features_list, y_list):
         time_start = time.time()
         
+        onevsall_dict = {}
+        
         # Divide df by train and test devices
         df_test = df[df["Set"]=="test"]
         df_train = df[df["Set"]=="train"]
@@ -184,7 +187,8 @@ class Pipeline():
 #            print "Random Forest Score:", rf_clf['Score'], "Time: ", rf_clf['Time']
 #            print "KNN Score:", knn_clf['Score'], "Time: ", knn_clf['Time']
 #            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
-                        #Print outs
+            
+            #Print outs
             print "Device Type:", device_type
             print "--------------------------"
             print "--------------------------"
@@ -200,16 +204,26 @@ class Pipeline():
             
             print "Total time (classifiers):", time_elapsed_clf
             print ""
+            
+            onevsall_dict[device_type] = {'RF': {'CM': rf_cm, 'Metrics':rf_metrics},
+                                          'KNN': {'CM': knn_cm, 'Metrics':knn_metrics},
+                                          'LDA': {'CM': lda_cm, 'Metrics':lda_metrics}}
         
         print "Total time (one vs all_classify):", time.time() - time_start
         print ""    
         
+        return onevsall_dict
+        
+        
     def one_vs_one_classify(self, df, features_list, y_list):
         time_start = time.time()
         
+        onevsone_dict = {}
+        
+        
         # Get possible combinations for one vs one
         combinations = [combination for combination in itertools.combinations(y_list, 2)]
-    
+
         for device_pair in combinations:
             # Only use data with the two device types needed for one vs one classification
             pos_device_type = device_pair[0]
@@ -260,9 +274,17 @@ class Pipeline():
             
             print "Total time (classifiers):", time_elapsed_clf
             print ""
-        
+            
+            # Store all into dictionary and list
+            onevsone_dict[device_pair] = {'RF': {'CM': rf_cm, 'Metrics':rf_metrics},
+                                          'KNN': {'CM': knn_cm, 'Metrics':knn_metrics},
+                                          'LDA': {'CM': lda_cm, 'Metrics':lda_metrics}}
+            
         print "Total time (one vs one_classify):", time.time() - time_start
-        print ""        
+        print ""
+        
+        return onevsone_dict
+        
 
     def random_forest_classifier(self, X_train, y_train, X_test, y_test):
         time_start = time.time()
@@ -351,16 +373,16 @@ class BLEPipeline(Pipeline):
                      's': 'Push'}
     
     DEVICE_TYPE = {'August1': 'lock',
-                    'August2': 'lock',
-                    'Door1': 'door',
-                    'Door2': 'door',
-                    'Home1': 'door',
-                    'Home2': 'door',
-                    'Kevo': 'lock',
-                    'Push': 'temp',
-                    'Room1': 'temp',
-                    'Room2': 'temp',
-                    'Weather': 'temp'}
+                   'August2': 'lock',
+                   'Door1': 'door',
+                   'Door2': 'door',
+                   'Home1': 'door',
+                   'Home2': 'door',
+                   'Kevo': 'lock',
+                   'Push': 'temp',
+                   'Room1': 'temp',
+                   'Room2': 'temp',
+                   'Weather': 'temp'}
     
     TRAINING_TEST = {'August1': 'train',
                      'August2': 'test',
