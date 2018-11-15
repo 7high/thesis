@@ -150,19 +150,18 @@ class Pipeline():
     
     def printout_cm_metrics(self, device_type, cm_list, matrices, metrics):
         print "Device Type:", device_type
-        print "--------------------------"
-        print "--------------------------"
+        print "=========================="
         
         for i, cm in enumerate(cm_list):
-            print cm_list
+            print cm_list[i]
             print ""
             print "Confusion Matrix"
             print matrices[i]
             print ""
             print "Metrics"
             print metrics[i]
-            print "--------------------------"
-    
+            print "---------------------------------------------------------"
+            
     def one_vs_all_classify(self, df, features_list, y_list, output='print'):
         time_start = time.time()
         
@@ -204,10 +203,7 @@ class Pipeline():
 #            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
             
             if output == 'print':
-                printout_cm_metrics(device_type,
-                                    ['RF','KNN','LDA'],
-                                    [rf_cm, knn_cm, lda_cm],
-                                    [rf_metrics, knn_metrics, lda_metrics])
+                self.printout_cm_metrics(device_type,['RF','KNN','LDA'],[rf_cm, knn_cm, lda_cm],[rf_metrics, knn_metrics, lda_metrics])
                 #Print outs
 #                print "Device Type:", device_type
 #                print "--------------------------"
@@ -225,6 +221,7 @@ class Pipeline():
                 print "Total time (classifiers):", time_elapsed_clf
                 print ""
             elif output == 'file':
+                print 'file output'
                 #TODO: Add option to output to file
             
             onevsall_dict[device_type] = {'RF': {'CM': rf_cm, 'Metrics':rf_metrics, 'Time':time_elapsed_clf},
