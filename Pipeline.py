@@ -40,10 +40,12 @@ class Pipeline():
         knn_model = self.knn.fit(X_train, y_train)
         
         preds = knn_model.predict(X_test)
+        preds_proba = knn_model.predict_proba(X_test)
         score = knn_model.score(X_test, y_test)
                 
         time_elapsed = time.time() - time_start
-        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
+#        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
+        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
     
     def init_srcDir(self):
         src_dir = os.path.dirname(self.SRC_DIR)
@@ -63,11 +65,12 @@ class Pipeline():
         lda_model = self.lda.fit(X_train, y_train)
         
         preds = lda_model.predict(X_test)
+        preds_proba = lda_model.predict_proba(X_test)
         score = lda_model.score(X_test, y_test)
           
         time_elapsed = time.time() - time_start
         
-        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
+        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
     
     def make_conf_matrix(self, y_actual, y_pred, cm_type, labels=None):
         """
@@ -314,11 +317,13 @@ class Pipeline():
         rf_model = self.randomforest.fit(X_train, y_train)
     
         preds = rf_model.predict(X_test)
+        preds_proba = rf_model.predict_proba(X_test)
         score = rf_model.score(X_test, y_test)
                
         time_elapsed = time.time() - time_start
-#        return {'Score' : score, 'Time' : time_elapsed}
-        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
+        
+        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
+#        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
     def resample(self, df, kind, category):
         # Based on the kind of resampling, get the majority or minority class count
