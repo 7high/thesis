@@ -45,7 +45,7 @@ class Pipeline():
                 
         time_elapsed = time.time() - time_start
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
-        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
+        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba, 'True':y_test}
     
     def init_srcDir(self):
         src_dir = os.path.dirname(self.SRC_DIR)
@@ -70,7 +70,7 @@ class Pipeline():
           
         time_elapsed = time.time() - time_start
         
-        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
+        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba, 'True':y_test}
     
     def make_conf_matrix(self, y_actual, y_pred, cm_type, labels=None):
         """
@@ -322,7 +322,8 @@ class Pipeline():
                
         time_elapsed = time.time() - time_start
         
-        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
+        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba, 'True':y_test}
+#        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
     def resample(self, df, kind, category):
