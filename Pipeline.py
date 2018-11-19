@@ -227,9 +227,9 @@ class Pipeline():
                 print 'file output'
                 #TODO: Add option to output to file
             
-            onevsall_dict[device_type] = {'RF': {'CM': rf_cm, 'Metrics':rf_metrics, 'Time':time_elapsed_clf},
-                                          'KNN': {'CM': knn_cm, 'Metrics':knn_metrics, 'Time':time_elapsed_clf},
-                                          'LDA': {'CM': lda_cm, 'Metrics':lda_metrics, 'Time':time_elapsed_clf}}
+            onevsall_dict[device_type] = {'RF': {'Classifier': rf_clf, 'CM': rf_cm, 'Metrics':rf_metrics, 'Time':time_elapsed_clf},
+                                          'KNN': {'Classifier': rf_clf, 'CM': knn_cm, 'Metrics':knn_metrics, 'Time':time_elapsed_clf},
+                                          'LDA': {'Classifier': rf_clf, 'CM': lda_cm, 'Metrics':lda_metrics, 'Time':time_elapsed_clf}}
         
         total_time = time.time() - time_start
         print "Total time (one vs all_classify):", total_time
@@ -299,9 +299,9 @@ class Pipeline():
             print ""
             
             # Store all into dictionary and list
-            onevsone_dict[device_pair] = {'RF': {'CM': rf_cm, 'Metrics':rf_metrics},
-                                          'KNN': {'CM': knn_cm, 'Metrics':knn_metrics},
-                                          'LDA': {'CM': lda_cm, 'Metrics':lda_metrics}}
+            onevsone_dict[device_pair] = {'RF': {'Classifier': rf_clf, 'CM': rf_cm, 'Metrics':rf_metrics},
+                                          'KNN': {'Classifier': rf_clf, 'CM': knn_cm, 'Metrics':knn_metrics},
+                                          'LDA': {'Classifier': rf_clf, 'CM': lda_cm, 'Metrics':lda_metrics}}
             
         print "Total time (one vs one_classify):", time.time() - time_start
         print ""
