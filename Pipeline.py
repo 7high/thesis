@@ -299,9 +299,9 @@ class Pipeline():
             print ""
             
             # Store all into dictionary and list
-            onevsone_dict[device_pair] = {'RF': {'Classifier': rf_clf, 'CM': rf_cm, 'Metrics':rf_metrics},
-                                          'KNN': {'Classifier': rf_clf, 'CM': knn_cm, 'Metrics':knn_metrics},
-                                          'LDA': {'Classifier': rf_clf, 'CM': lda_cm, 'Metrics':lda_metrics}}
+            onevsone_dict[device_pair] = {'RF': {'Classifier': rf_clf, 'CM': rf_cm, 'Metrics':rf_metrics, 'Time':time_elapsed_clf},
+                                          'KNN': {'Classifier': rf_clf, 'CM': knn_cm, 'Metrics':knn_metrics, 'Time':time_elapsed_clf},
+                                          'LDA': {'Classifier': rf_clf, 'CM': lda_cm, 'Metrics':lda_metrics, 'Time':time_elapsed_clf}}
             
         print "Total time (one vs one_classify):", time.time() - time_start
         print ""
