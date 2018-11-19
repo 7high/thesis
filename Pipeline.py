@@ -302,11 +302,12 @@ class Pipeline():
             onevsone_dict[device_pair] = {'RF': {'Classifier': rf_clf, 'CM': rf_cm, 'Metrics':rf_metrics},
                                           'KNN': {'Classifier': knn_clf, 'CM': knn_cm, 'Metrics':knn_metrics},
                                           'LDA': {'Classifier': lda_clf, 'CM': lda_cm, 'Metrics':lda_metrics}}
-            
-        print "Total time (one vs one_classify):", time.time() - time_start
+        
+        total_time = time.time() - time_start
+        print "Total time (one vs one_classify):", total_time
         print ""
         
-        return onevsone_dict
+        return onevsone_dict, total_time
         
 
     def random_forest_classifier(self, X_train, y_train, X_test, y_test):
