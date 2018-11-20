@@ -12,9 +12,9 @@ from sklearn.model_selection import StratifiedShuffleSplit
 class Pipeline():
     
     def __init__(self):
-        self.knn = KNeighborsClassifier(n_neighbors=5, n_jobs=2)
+        self.knn = KNeighborsClassifier()
         self.lda = LinearDiscriminantAnalysis()
-        self.randomforest = RandomForestClassifier(random_state=0, n_jobs=2, class_weight='balanced')
+        self.randomforest = RandomForestClassifier()
     
     def calculate_cm_metrics(self, conf_matrix):
         # Extract the counts
