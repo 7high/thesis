@@ -328,11 +328,13 @@ class Pipeline():
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
     def resample(self, df, kind, category):
-        # Based on the kind of resampling, get the majority or minority class count
+        # Based on the kind of resampling, get the majority, minority or median class count
         if kind == "under":
             count = min(df[category].value_counts())
         elif kind == "over":
             count = max(df[category].value_counts())
+        elif kind == "mid":
+            count = int(np.median(df[category].value_counts()))
         else:
             print "Invalid resampling"
             return
@@ -345,7 +347,7 @@ class Pipeline():
         for value in uniques:
             if kind == "under":
                 sub_df = df[df[category] == value].sample(count)
-            elif kind == "over":
+            elif kind == "over" or kind == "mid":
                 sub_df = df[df[category] == value].sample(count, replace=True)
             sub_dfs.append(sub_df)
             
