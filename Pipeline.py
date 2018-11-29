@@ -446,6 +446,11 @@ class BLEPipeline(Pipeline):
     DATE = path_name[path_name.rindex('/')+1:]
     PROC_TIME = "ble_processing_time_" + DATE + ".csv"
     
+    def __init__(self):
+        self.knn = KNeighborsClassifier(n_neighbors=1)
+        self.lda = LinearDiscriminantAnalysis(n_components=1, solver='lsqr')
+        self.randomforest = RandomForestClassifier(max_features=11)
+    
     def count_assoc_pkts(self, df, device):
         """
         Gets the count of packets of a given device that are sent within a second of each other (associated packets)
@@ -822,6 +827,11 @@ class WifiPipeline(Pipeline):
     path_name = os.getcwd()
     DATE = path_name[path_name.rindex('/')+1:]
     PROC_TIME = "wifi_processing_time_" + DATE + ".csv"
+    
+    def __init__(self):
+        self.knn = KNeighborsClassifier(n_neighbors=7)
+        self.lda = LinearDiscriminantAnalysis(n_components=1, solver='lsqr')
+        self.randomforest = RandomForestClassifier(max_features=8)
     
     def count_assoc_pkts(self, df, device):
         """
