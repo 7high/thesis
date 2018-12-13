@@ -719,8 +719,6 @@ class BLEPipeline(Pipeline):
                 advAddr = pkt.btle.get_field_value('advertising_address')
                 bleLength = pkt.btle.get_field_value('length')
                 pduType = pkt.btle.get_field_value('advertising_header_pdu_type')
-                txAddr = pkt.btle.get_field_value('advertising_header_randomized_tx')
-                companyID = pkt.btle.get_field_value('btcommon_eir_ad_entry_company_id')
                 scanAddr = pkt.btle.get_field_value('scanning_address')
                 
                 # BLE RF
@@ -1109,18 +1107,16 @@ class WifiPipeline(Pipeline):
             The keys are device destination addresses, and the values are the open csv files.
         """
         try:
-            pkt_dst = pkt.wlan.da
             pkt_src = pkt.wlan.sa
             
             if (pkt_src in self.WIFI_DEVICES):
                 # Extract features
                 pkt_time = pkt.frame_info.time_epoch
                 pkt_len = pkt.length
-                pkt_duration = pkt.wlan.duration
                 pkt_subtype_num = pkt.wlan.fc_type_subtype
                 
                 # Output matches FEATURES
-                output = [pkt_time, pkt_len, pkt_duration, pkt_src, pkt_dst, pkt_subtype_num]
+                output = [pkt_time, pkt_len, pkt_src, pkt_subtype_num]
                 
                 csv.writer(tgt_files_by_src[pkt_src]).writerow(output)            
         
