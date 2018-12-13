@@ -1124,13 +1124,11 @@ class WifiPipeline(Pipeline):
             print "ignored: ", pkt.number
             
     def rename_csv_files(self, device_name):
-        dirs = [self.SRC_DIR, self.DST_DIR]
-        
-        for directory in dirs:        
-            for filename in os.listdir(directory):
-                filename_noextension = os.path.splitext(filename)[0]
-                new_filename = device_name[filename_noextension.replace('.',':')] + '.csv'
-                os.rename(directory + filename, directory + new_filename)
+        directory = self.SRC_DIR
+        for filename in os.listdir(directory):
+            filename_noextension = os.path.splitext(filename)[0]
+            new_filename = device_name[filename_noextension.replace('.',':')] + '.csv'
+            os.rename(directory + filename, directory + new_filename)
             
 #------------------------------------------------------------------------------
             
