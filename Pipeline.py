@@ -439,8 +439,7 @@ class BLEPipeline(Pipeline):
     TIMING_PKT_NUMBER = 25000
     
     FEATURES = ['Name', 'DeviceName', 'AccessAddr', 'AdvertAddr', 'BLE_LL_Length', 
-                'PDUTypeNum', 'TxAddr', 'CompanyID','ScanAddr',
-                'RFChannel', 'PacketLength', 'Time']
+                'PDUTypeNum', 'ScanAddr','RFChannel', 'PacketLength', 'Time']
     
     path_name = os.getcwd()
     DATE = path_name[path_name.rindex('/')+1:]
@@ -732,7 +731,8 @@ class BLEPipeline(Pipeline):
                 name = self.DEVICES_PUBLICADDRS[identifier] if identifier_type == 'advAddr' else self.NAMES_DEVICES[identifier]
                             
                 # Output matches the order of FEATURES
-                output = [name, deviceName, accessAddr, advAddr, bleLength, pduType, txAddr, companyID, scanAddr,
+                output = [name, deviceName, accessAddr, advAddr, 
+                          bleLength, pduType, scanAddr,
                           rfChannel,
                           pktLength, epochTime]
                 
@@ -813,8 +813,8 @@ class WifiPipeline(Pipeline):
                          40 : 'QoS_Data',
                          44 : 'QoS_Null'}
 
-    FEATURES = ["Time", "PacketLength", "Duration", 
-                "SourceAddr", "DestAddr", "SubtypeNum"]
+    FEATURES = ["Time", "PacketLength",
+                "SourceAddr","SubtypeNum"]
     
     SRC_DIR = './Wifi_Source/'
     DST_DIR = './Wifi_Destination/'
