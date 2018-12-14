@@ -439,7 +439,7 @@ class BLEPipeline(Pipeline):
     TIMING_PKT_NUMBER = 25000
     
     FEATURES = ['Name', 'DeviceName', 'AccessAddr', 'AdvertAddr', 'BLE_LL_Length', 
-                'PDUTypeNum', 'ScanAddr','RFChannel', 'PacketLength', 'Time']
+                'PDUTypeNum','RFChannel', 'PacketLength', 'Time']
     
     path_name = os.getcwd()
     DATE = path_name[path_name.rindex('/')+1:]
@@ -635,13 +635,6 @@ class BLEPipeline(Pipeline):
         deviceType_series = pd.get_dummies(df["DeviceType"])
         df = pd.concat([df, deviceType_series], axis=1)
         
-        # TODO: One-hot encode company ID 
-        
-        # TODO: One-hot encode access address
-        
-        # TODO: One-hot encode adv address
-        
-        # TODO: One-hot encode scanning address
         
         # One-hot encode PDU_type
         df["PDUType"] = df["PDUTypeNum"].map(self.PDU_TYPES)
@@ -656,8 +649,6 @@ class BLEPipeline(Pipeline):
             list_assoc_pkts.append(assoc_pkts)
         df["Assoc_Packets"] = pd.concat(list_assoc_pkts)
         
-        # Fill NaNs with 0
-        df["ScanAddr"] = df["ScanAddr"].fillna(0)
         
         # Count packets for each device
         device_counts = df["Name"].value_counts()
@@ -676,8 +667,6 @@ class BLEPipeline(Pipeline):
             - BLE LL packet length (bytes)
             - PDU type
             - Tx address type (public or random)
-            - company id
-            - scanning address (if SCAN_REQ pdu_type)
             
             (BLE RF)
             - rf channel (same as advertising channel: RF 0 = ADV 37, 12 = 38, 39 = 39)
@@ -717,7 +706,6 @@ class BLEPipeline(Pipeline):
                 advAddr = pkt.btle.get_field_value('advertising_address')
                 bleLength = pkt.btle.get_field_value('length')
                 pduType = pkt.btle.get_field_value('advertising_header_pdu_type')
-                scanAddr = pkt.btle.get_field_value('scanning_address')
                 
                 # BLE RF
                 rfChannel = pkt.btle_rf.get_field_value('channel')
@@ -731,7 +719,7 @@ class BLEPipeline(Pipeline):
                             
                 # Output matches the order of FEATURES
                 output = [name, deviceName, accessAddr, advAddr, 
-                          bleLength, pduType, scanAddr,
+                          bleLength, pduType,
                           rfChannel,
                           pktLength, epochTime]
                 
@@ -1172,7 +1160,7 @@ if __name__ == "main":
     # Run One vs All  and One vs One classification strategies
     ble_features_list = [
     #     'AccessAddr', 'AdvertAddr', 'ScanAddr',
-        'BLE_LL_Length', 'TxAddr', 'CompanyID',
+        'BLE_LL_Length', 'TxAddr',
     #     'RFChannel',
         'PacketLength', 'Time', 'Assoc_Packets',
         'ADV_DIRECT_IND', 'ADV_IND', 'ADV_NONCONN_IND', 
