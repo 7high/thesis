@@ -657,7 +657,6 @@ class BLEPipeline(Pipeline):
         df["Assoc_Packets"] = pd.concat(list_assoc_pkts)
         
         # Fill NaNs with 0
-        df["CompanyID"] = df["CompanyID"].fillna(0)
         df["ScanAddr"] = df["ScanAddr"].fillna(0)
         
         # Count packets for each device
