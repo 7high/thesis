@@ -7,5 +7,7 @@ Wifi_Source/
 *.py
 *.pyc
 *.csv
+*.png
+*.tex
 
 
