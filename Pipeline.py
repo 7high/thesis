@@ -446,9 +446,9 @@ class BLEPipeline(Pipeline):
     PROC_TIME = "ble_processing_time_" + DATE + ".csv"
     
     def __init__(self):
-        self.knn = KNeighborsClassifier(n_neighbors=3)
+        self.knn = KNeighborsClassifier(n_neighbors=1)
         self.lda = LinearDiscriminantAnalysis(n_components=1, solver='lsqr')
-        self.randomforest = RandomForestClassifier(max_features=14)
+        self.randomforest = RandomForestClassifier(max_features=7)
     
     def count_assoc_pkts(self, df, device):
         """
@@ -816,7 +816,7 @@ class WifiPipeline(Pipeline):
     def __init__(self):
         self.knn = KNeighborsClassifier(n_neighbors=9)
         self.lda = LinearDiscriminantAnalysis(n_components=1, solver='lsqr')
-        self.randomforest = RandomForestClassifier(max_features=8)
+        self.randomforest = RandomForestClassifier(max_features=4)
     
     def count_assoc_pkts(self, df, device):
         """
