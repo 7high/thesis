@@ -42,7 +42,27 @@ class Pipeline():
         cm_metrics["F1"] = f_one
     
         return cm_metrics
+    
+    def create_csv_results(protocol, results):
+        header = ['Trial',
+                  'Device', 'Classifier', 
+                  'FN', 'FP', 'TN', 'TP', 
+                  'Accuracy', 'Precision', 'Recall', 'F1']
         
+        with open(protocol + '-results.csv', mode='w') as results_file:
+            results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    
+            # Print header
+            results_writer.writerow(header)
+            
+            # Print info
+            for i, result in enumerate(results):
+                for device_type, results_device in result[0].iteritems():        
+                    for classifier,result_classifier in results_device.iteritems():
+                        results_writer.writerow([i+1, device_type, classifier] + list(result[0]['plug']['KNN']['Metrics'].iloc[0,:].values))
+
+
+    
     def k_neighbors_classifier(self, X_train, y_train, X_test, y_test):
         time_start = time.time()
         
