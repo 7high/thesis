@@ -1394,61 +1394,6 @@ class WifiPipeline(Pipeline):
             
 if __name__ == "main":
     #Main        
-    time_start = time.time()        
-    w = WifiPipeline()
-    #b.extract_packet_features(filename='/root/Documents/Thesis/PCAPS/wifi-01.cap', create_master=False)
-    w.extract_packet_features(create_master=True)
-    w.make_dataframe()
-    
-    # Run One vs All  and One vs One classification strategies
-    wifi_features_list = [
-            # Packet info
-            "PacketLength", "Duration", 
-            
-            # Vendor 
-    #          "Belkin", "Dropcam", "Lifi", "Netgear", "Tp-link",
-        
-            # 802.11 Data subtype
-            "Data", "QoS_Data", "QoS_Null",
-    
-            # Associated Packets
-            "Assoc_Packets"]
-    
-    wifi_y_list = ["camera", "bulb", "plug"]
-    print "One vs all"
-    w.one_vs_all_classify(w.df, wifi_features_list, wifi_y_list)
-    
-    print "One vs one"
-    w.one_vs_one_classify(w.df, wifi_features_list, wifi_y_list)
-    
-    print "Total time:", time.time() - time_start
-                
-    time_start = time.time()
-    b = BLEPipeline()
-    #b.extract_packet_features(filename='/root/Documents/Thesis/PCAPS/wifi-01.cap', create_master=False)
-    b.extract_packet_features(create_master=True)
-    b.make_dataframe()
-    
-    # Run One vs All  and One vs One classification strategies
-    # Run One vs All  and One vs One classification strategies
-    ble_features_list = [
-    #     'AccessAddr', 'AdvertAddr', 'ScanAddr',
-        'BLE_LL_Length', 'TxAddr',
-    #     'RFChannel',
-        'PacketLength', 'Time', 'Assoc_Packets',
-        'ADV_DIRECT_IND', 'ADV_IND', 'ADV_NONCONN_IND', 
-        'ADV_SCAN_IND', 'CONNECT_REQ', 'SCAN_REQ', 'SCAN_RSP']
-    
-    ble_y_list = ["door", "lock", "plug", "temp"]
-    
-    
-    print "One vs all"
-    b.one_vs_all_classify(b.df, ble_features_list, ble_y_list)
-    
-    print "One vs one"
-    b.one_vs_one_classify(b.df, ble_features_list, ble_y_list)
-    
-    
-    print "Total time:", time.time() - time_start            
+    print "Run as imported module"
                 
                 
