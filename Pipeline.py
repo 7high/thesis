@@ -7,6 +7,8 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import StratifiedShuffleSplit
+from imblearn.under_sampling import RandomUnderSampler
+from sklearn.metrics import roc_curve, roc_auc_score
 
 
 class Pipeline():
@@ -27,9 +29,16 @@ class Pipeline():
         cm_metrics = pd.DataFrame({'TP':tp, 'FP':fp, 'TN':tn, 'FN':fn}, index=list(conf_matrix.columns))
     
         # Calculate metrics
-        cm_metrics["Accuracy"] = (cm_metrics["TP"] + cm_metrics["TN"]) / cm_metrics.iloc[0:3].sum(axis=1)
-        cm_metrics["Precision"] = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FP"])
-        cm_metrics["Recall"] = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FN"])
+        accuracy = (cm_metrics["TP"] + cm_metrics["TN"]) / cm_metrics.iloc[0:3].sum(axis=1)
+        precision = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FP"])
+        recall = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FN"])
+        f_one = 2 * (precision * recall) / (precision + recall)
+        
+        # Store into df
+        cm_metrics["Accuracy"] = accuracy
+        cm_metrics["Precision"] = precision
+        cm_metrics["Recall"] = recall
+        cm_metrics["F1"] = f_one
     
         return cm_metrics
         
@@ -158,8 +167,8 @@ class Pipeline():
         for i, cm in enumerate(cm_list):
             print cm_list[i]
             print ""
-            print "Confusion Matrix"
-            print matrices[i]
+#            print "Confusion Matrix"
+#            print matrices[i]
             print ""
             print "Metrics"
             print metrics[i]
@@ -207,19 +216,6 @@ class Pipeline():
             
             if output == 'print':
                 self.printout_cm_metrics(device_type,['RF','KNN','LDA'],[rf_cm, knn_cm, lda_cm],[rf_metrics, knn_metrics, lda_metrics])
-                #Print outs
-#                print "Device Type:", device_type
-#                print "--------------------------"
-#                print "--------------------------"
-#                print "RF Confusion Matrix\n", rf_cm, '\n'   
-#                print "RF Metrics\n", rf_metrics, '\n'      
-#                print "--------------------------"
-#                print "KNN Confusion Matrix\n", knn_cm, '\n'
-#                print "KNN Metrics\n", knn_metrics, '\n'
-#                print "--------------------------"
-#                print "LDA Confusion Matrix\n", lda_cm, '\n'
-#                print "LDA Metrics\n", lda_metrics, '\n'
-#                print "--------------------------"
                 
                 print "Total time (classifiers):", time_elapsed_clf
                 print ""
@@ -327,33 +323,35 @@ class Pipeline():
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
-    def resample(self, df, kind, category):
-        # Based on the kind of resampling, get the majority, minority or median class count
-        if kind == "under":
-            count = min(df[category].value_counts())
-        elif kind == "over":
-            count = max(df[category].value_counts())
-        elif kind == "mid":
-            count = int(np.median(df[category].value_counts()))
-        else:
-            print "Invalid resampling"
-            return
+    def downsample(X, y, df_test):
+        rds = RandomUnderSampler()
         
-        # Get all unique values in the given category
-        uniques = df[category].unique()
+        # Resample
+        X_downsampled, y_downsampled = rds.fit_resample(X, y)
+    
+        # Recreate dataframe
+        X_downsampled = pd.DataFrame(data=X_downsampled, columns=X.columns)
+        y_downsampled = pd.DataFrame(data=y_downsampled, columns=['DeviceType'])
+    
+        # Onehot encode 'DeviceType'
+        devicetype_series = pd.get_dummies(y_downsampled['DeviceType'])
+        y_downsampled = pd.concat([y_downsampled, devicetype_series], axis=1)
+        y_downsampled = y_downsampled.drop(['DeviceType'],axis=1)
+    
+        # Combine X and y into one dataframe
+        df_train_downsampled = pd.concat([X_downsampled, y_downsampled], axis=1)
         
-        # Resample all sub_dfs based on the unique values of the category
-        sub_dfs = []
-        for value in uniques:
-            if kind == "under":
-                sub_df = df[df[category] == value].sample(count)
-            elif kind == "over" or kind == "mid":
-                sub_df = df[df[category] == value].sample(count, replace=True)
-            sub_dfs.append(sub_df)
-            
-        # Recombine sampled sub_dfs into one sampled df
-        comb_sub_dfs = pd.concat(sub_dfs, axis=0)
-        return comb_sub_dfs
+        # Reinsert Set and DeviceType columns to training dataset
+        df_train_downsampled['Set'] = 'train'
+    
+        # Ensure same number of columns in both training and test datasets
+        train_cols = df_train_downsampled.columns
+        df_test_samecols = df_test[train_cols]
+    
+        # Combine training and test sets into one dataframe
+        df_downsampled = pd.concat([df_train_downsampled,df_test_samecols],axis=0)    
+        
+        return df_downsampled
     
 #------------------------------------------------------------------------------------------------------------
 class BLEPipeline(Pipeline):
