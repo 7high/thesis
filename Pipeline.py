@@ -59,7 +59,7 @@ class Pipeline():
             for i, result in enumerate(results):
                 for device_type, results_device in result[0].iteritems():        
                     for classifier,result_classifier in results_device.iteritems():
-                        results_writer.writerow([i+1, device_type, classifier] + list(result[0]['plug']['KNN']['Metrics'].iloc[0,:].values))
+                        results_writer.writerow([i+1, device_type, classifier] + list(result[0][device_type][classifier]['Metrics'].iloc[0,:].values))
 
 
     
