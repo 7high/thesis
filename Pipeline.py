@@ -17,6 +17,7 @@ class Pipeline():
         self.knn = KNeighborsClassifier()
         self.lda = LinearDiscriminantAnalysis()
         self.randomforest = RandomForestClassifier()
+        self.feature_importances = []
     
     def calculate_cm_metrics(self, conf_matrix):
         # Extract the counts
@@ -319,6 +320,8 @@ class Pipeline():
                
         time_elapsed = time.time() - time_start
         
+        self.feature_importances.append(self.randomforest.feature_importances_)
+        
         return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba, 'True':y_test}
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
@@ -418,7 +421,8 @@ class BLEPipeline(Pipeline):
         self.knn = KNeighborsClassifier(n_neighbors=1)
         self.lda = LinearDiscriminantAnalysis(n_components=1, solver='lsqr')
         self.randomforest = RandomForestClassifier(max_features=7)
-    
+        self.feature_importances = []
+        
     def count_assoc_pkts(self, df, device):
         """
         Gets the count of packets of a given device that are sent within a second of each other (associated packets)
@@ -830,6 +834,7 @@ class WifiPipeline(Pipeline):
         self.knn = KNeighborsClassifier(n_neighbors=9)
         self.lda = LinearDiscriminantAnalysis(n_components=1, solver='lsqr')
         self.randomforest = RandomForestClassifier(max_features=4)
+        self.feature_importances = []
     
     def count_assoc_pkts(self, df, device):
         """
