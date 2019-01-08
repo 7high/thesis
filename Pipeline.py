@@ -14,12 +14,34 @@ from sklearn.metrics import roc_curve, roc_auc_score
 class Pipeline():
     
     def __init__(self):
+        """
+        Initializes Pipeline class. Creates knn, lda, and rf classifiers.
+        Creates a list to store feature importances from rf classifier models.
+        """
         self.knn = KNeighborsClassifier()
         self.lda = LinearDiscriminantAnalysis()
         self.randomforest = RandomForestClassifier()
         self.feature_importances = []
     
     def calculate_cm_metrics(self, conf_matrix):
+        """
+        Produces the confusion matrix metrics and performance metrics:
+            true positives, false positives, false negatives, true negatives,
+            accuracy, precision, recall, and F1 score
+    
+        Parameters
+        ----------
+        conf_matrix: (dataframe)
+    
+        Output
+        ------
+        none
+    
+        Returns
+        -------
+        cm_metrics: (dataframe) dataframe containing metrics listed above
+        
+        """
         # Extract the counts
         fp = np.array(conf_matrix.sum(axis=0) - np.diag(conf_matrix))
         fn = np.array(conf_matrix.sum(axis=1) - np.diag(conf_matrix))
@@ -44,13 +66,32 @@ class Pipeline():
         return cm_metrics
     
     def create_csv_results(self, protocol, results):
+        """
+        Creates a csv file containing the results
+        
+        Parameters
+        ----------
+        protocol: (str) protocol (ble or wifi)
+        results: (list of dictionaries) contains the results from all trials 
+        
+        Output
+        ------
+        'protocol'-results.csv: csv file of all results. Found in current dir
+        
+        Returns
+        -------
+        None
+        """
+        
         header = ['Trial',
                   'Device', 'Classifier', 
                   'FN', 'FP', 'TN', 'TP', 
                   'Accuracy', 'Precision', 'Recall', 'F1']
         
         with open(protocol + '-results.csv', mode='w') as results_file:
-            results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            results_writer = csv.writer(results_file, delimiter=',', 
+                                        quotechar='"', 
+                                        quoting=csv.QUOTE_MINIMAL)
     
             # Print header
             results_writer.writerow(header)
@@ -64,9 +105,27 @@ class Pipeline():
 
     
     def k_neighbors_classifier(self, X_train, y_train, X_test, y_test):
+        """
+        Implements the knn classifier. Uses the hyperparameters set during
+        init
+        
+        Parameters
+        ----------
+        X_train, y_train: (df or array) training dataset
+        X_test, y_test: (df or array) test dataset
+        
+        
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        dict: dictionary with default score, time elapsed, predicted values,
+        predicted probabilities, and y_true
+        """
         time_start = time.time()
         
-#        knn = KNeighborsClassifier(n_neighbors=5, n_jobs=2)
         knn_model = self.knn.fit(X_train, y_train)
         
         preds = knn_model.predict(X_test)
@@ -74,10 +133,25 @@ class Pipeline():
         score = knn_model.score(X_test, y_test)
                 
         time_elapsed = time.time() - time_start
-#        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
         return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba, 'True':y_test}
     
     def init_srcDir(self):
+        """
+        Helper function for creating source directory to store csv of parsed
+        packets
+        
+        Parameters
+        ----------
+        None
+        
+        Output
+        ------
+        folder: (filesystem) clean directory for csvs
+        
+        Returns
+        -------
+        None
+        """
         src_dir = os.path.dirname(self.SRC_DIR)
 
         if os.path.exists(src_dir):
@@ -89,9 +163,27 @@ class Pipeline():
         os.makedirs(src_dir)
     
     def lda_classifier(self, X_train, y_train, X_test, y_test):
+        """
+        Implements the lda classifier. Uses the hyperparameters set during
+        init
+        
+        Parameters
+        ----------
+        X_train, y_train: (df or array) training dataset
+        X_test, y_test: (df or array) test dataset
+        
+        
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        dict: dictionary with default score, time elapsed, predicted values,
+        predicted probabilities, and y_true
+        """
         time_start = time.time()
         
-#        lda = LinearDiscriminantAnalysis()
         lda_model = self.lda.fit(X_train, y_train)
         
         preds = lda_model.predict(X_test)
@@ -182,6 +274,24 @@ class Pipeline():
         return df_confusion
     
     def printout_cm_metrics(self, device_type, cm_list, matrices, metrics):
+        """
+        Print out confusion matrix metrics to console.
+        
+        Parameters
+        ----------
+        device_type: (str) 
+        cm_list: (list) list of classifier names, in order: rf, knn, lda
+        matrices: (dataframe) actual confusion matrices
+        metrics: (dataframe) contains metrics from calculate_cm_metrics()
+        
+        Output
+        ------
+        printout (to console)
+        
+        Returns
+        -------
+        None
+        """
         print "Device Type:", device_type
         print "=========================="
         
@@ -196,6 +306,29 @@ class Pipeline():
             print "---------------------------------------------------------"
             
     def one_vs_all_classify(self, df, features_list, y_list, printout=False):
+        """
+        Implements the one vs all classification scheme. Takes a primary class 
+        as the positive class and treats all other classes as the negative
+        class.
+        
+        Parameters
+        ----------
+        df: (dataframe) complete dataframe with training and test set combined
+        features_list: (list) list of features to be considered in 
+            classification
+        y_list: (list) list of response classes (device types)
+        printout: (boolean) whether to print to console 
+        
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        results: (tuple = (dictionary, int)) 
+            dict: nested dictionary w/ all classification info 
+            int: total one_vs_all computing time
+        """
         time_start = time.time()
         
         onevsall_dict = {}
@@ -231,10 +364,6 @@ class Pipeline():
             knn_metrics = self.calculate_cm_metrics(knn_cm)
             lda_metrics = self.calculate_cm_metrics(lda_cm)
             
-#            print "Random Forest Score:", rf_clf['Score'], "Time: ", rf_clf['Time']
-#            print "KNN Score:", knn_clf['Score'], "Time: ", knn_clf['Time']
-#            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
-            
             if printout:
                 self.printout_cm_metrics(device_type,['RF','KNN','LDA'],[rf_cm, knn_cm, lda_cm],[rf_metrics, knn_metrics, lda_metrics])
                 
@@ -252,6 +381,29 @@ class Pipeline():
         
         
     def one_vs_one_classify(self, df, features_list, y_list):
+        """
+        Implements the one vs one classification scheme. Takes a primary class 
+        as the positive class and then selects another primary class as the 
+        negative class. Will exhaustively try all combinations of classes.
+        Not used in research.        
+        
+        Parameters
+        ----------
+        df: (dataframe) complete dataframe with training and test set combined
+        features_list: (list) list of features to be considered in 
+            classification
+        y_list: (list) list of response classes (device types)
+    
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        results: (tuple = (dictionary, int)) 
+            dict: nested dictionary w/ all classification info 
+            int: total one_vs_all computing time
+        """
         time_start = time.time()
         
         onevsone_dict = {}
@@ -324,10 +476,27 @@ class Pipeline():
         
 
     def random_forest_classifier(self, X_train, y_train, X_test, y_test):
+        """
+        Implements the random forests classifier. Uses the hyperparameters 
+        set during init. Appends the feature_importances list for each trial.
+        
+        Parameters
+        ----------
+        X_train, y_train: (df or array) training dataset
+        X_test, y_test: (df or array) test dataset
+        
+        
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        dict: dictionary with default score, time elapsed, predicted values,
+        predicted probabilities, and y_true
+        """
         time_start = time.time()
         
-    #     randomforest = RandomForestClassifier(random_state=0, n_jobs=2)
-#        randomforest = RandomForestClassifier(random_state=0, n_jobs=2, class_weight='balanced')
         rf_model = self.randomforest.fit(X_train, y_train)
     
         preds = rf_model.predict(X_test)
@@ -336,11 +505,10 @@ class Pipeline():
                
         time_elapsed = time.time() - time_start
         
+        # Update feature_importances list to keep track of each trial's results
         self.feature_importances.append(self.randomforest.feature_importances_)
         
         return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba, 'True':y_test}
-#        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
-#        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
     
 #------------------------------------------------------------------------------------------------------------
@@ -434,6 +602,11 @@ class BLEPipeline(Pipeline):
     PROC_TIME = "ble_processing_time_" + DATE + ".csv"
     
     def __init__(self):
+        """
+        Initializes BLEPipeline class. Creates knn, lda, and rf classifiers.
+        Contains tuned hyperparameter values.
+        Creates a list to store feature importances from rf classifier models.
+        """
         self.knn = KNeighborsClassifier(n_neighbors=1)
         self.lda = LinearDiscriminantAnalysis(n_components=1, solver='lsqr')
         self.randomforest = RandomForestClassifier(max_features=7)
@@ -484,6 +657,25 @@ class BLEPipeline(Pipeline):
         return assoc_count
 
     def downsample(self, X, y, df_test):
+        """
+        Creates a randomly downsampled (or undersampled) dataset using imblearn
+        module (https://imbalanced-learn.readthedocs.io/en/stable/api.html)
+        
+        Parameters
+        ----------
+        X, y: (dataframe/array) training set to be downsampled
+        df_test: (dataframe) test set. Will be concatenated with downsampled
+            training set to create a full useable dataset
+        
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        df_downsampled: (dataframe) full useable dataset with downsampled 
+            training set. Test set is unchanged.
+        """
         rds = RandomUnderSampler()
         
         # Resample
@@ -578,10 +770,7 @@ class BLEPipeline(Pipeline):
     
         # Initialize capture file 
         cap = pyshark.FileCapture(filename, only_summaries=False)
-    
-        # Get time of first packet
-        prev_pkt_time = cap[0].frame_info.time_epoch
-    
+        
         # Initialize output folders
         self.init_srcDir()
         
@@ -676,7 +865,6 @@ class BLEPipeline(Pipeline):
         
         # Get number of associated packets for each packet
         list_assoc_pkts = []
-    #     for device in list(df["Name"].unique()):
         for device in self.BLE_DEVICES:
             assoc_pkts = self.count_assoc_pkts(df, device)
             list_assoc_pkts.append(assoc_pkts)
@@ -847,6 +1035,11 @@ class WifiPipeline(Pipeline):
     PROC_TIME = "wifi_processing_time_" + DATE + ".csv"
     
     def __init__(self):
+        """
+        Initializes WifiPipeline class. Creates knn, lda, and rf classifiers.
+        Contains tuned hyperparameter values.
+        Creates a list to store feature importances from rf classifier models.
+        """
         self.knn = KNeighborsClassifier(n_neighbors=9)
         self.lda = LinearDiscriminantAnalysis(n_components=1, solver='lsqr')
         self.randomforest = RandomForestClassifier(max_features=4)
@@ -898,6 +1091,25 @@ class WifiPipeline(Pipeline):
         return assoc_count
     
     def downsample(self, X, y, df_test):
+        """
+        Creates a randomly downsampled (or undersampled) dataset using imblearn
+        module (https://imbalanced-learn.readthedocs.io/en/stable/api.html)
+        
+        Parameters
+        ----------
+        X, y: (dataframe/array) training set to be downsampled
+        df_test: (dataframe) test set. Will be concatenated with downsampled
+            training set to create a full useable dataset
+        
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        df_downsampled: (dataframe) full useable dataset with downsampled 
+            training set. Test set is unchanged.
+        """
         rds = RandomUnderSampler()
         
         # Resample
@@ -980,9 +1192,6 @@ class WifiPipeline(Pipeline):
 
         # Initialize capture file 
         cap = pyshark.FileCapture(filename, only_summaries=False)
-
-        # Get time of first packet
-        prev_pkt_time = cap[0].frame_info.time_epoch
 
         # Initialize output folders
         self.init_srcDir()
