@@ -323,35 +323,6 @@ class Pipeline():
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
-    def downsample(self, X, y, df_test):
-        rds = RandomUnderSampler()
-        
-        # Resample
-        X_downsampled, y_downsampled = rds.fit_resample(X, y)
-    
-        # Recreate dataframe
-        X_downsampled = pd.DataFrame(data=X_downsampled, columns=X.columns)
-        y_downsampled = pd.DataFrame(data=y_downsampled, columns=['DeviceType'])
-    
-        # Onehot encode 'DeviceType'
-        devicetype_series = pd.get_dummies(y_downsampled['DeviceType'])
-        y_downsampled = pd.concat([y_downsampled, devicetype_series], axis=1)
-        y_downsampled = y_downsampled.drop(['DeviceType'],axis=1)
-    
-        # Combine X and y into one dataframe
-        df_train_downsampled = pd.concat([X_downsampled, y_downsampled], axis=1)
-        
-        # Reinsert Set and DeviceType columns to training dataset
-        df_train_downsampled['Set'] = 'train'
-    
-        # Ensure same number of columns in both training and test datasets
-        train_cols = df_train_downsampled.columns
-        df_test_samecols = df_test[train_cols]
-    
-        # Combine training and test sets into one dataframe
-        df_downsampled = pd.concat([df_train_downsampled,df_test_samecols],axis=0)    
-        
-        return df_downsampled
     
 #------------------------------------------------------------------------------------------------------------
 class BLEPipeline(Pipeline):
@@ -492,6 +463,40 @@ class BLEPipeline(Pipeline):
         assoc_count = pd.Series(assoc_pkt_counts, index=df_device.index)
         return assoc_count
 
+    def downsample(self, X, y, df_test):
+        rds = RandomUnderSampler()
+        
+        # Resample
+        X_downsampled, y_downsampled = rds.fit_resample(X, y)
+    
+        # Recreate dataframe
+        X_downsampled = pd.DataFrame(data=X_downsampled, columns=X.columns)
+        y_downsampled = pd.DataFrame(data=y_downsampled, columns=['DeviceType'])
+    
+        # Onehot encode 'DeviceType'
+        devicetype_series = pd.get_dummies(y_downsampled['DeviceType'])
+        y_downsampled = pd.concat([y_downsampled, devicetype_series], axis=1)
+        y_downsampled = y_downsampled.drop(['DeviceType'],axis=1)
+    
+        # Combine X and y into one dataframe
+        df_train_downsampled = pd.concat([X_downsampled, y_downsampled], axis=1)
+        
+        # Reinsert Set column to training dataset
+        df_train_downsampled['Set'] = 'train'
+        
+        # Onehot encode 'RFChannel' in test set
+        rf_series = pd.get_dummies(df_test["RFChannel"])
+        df_test = pd.concat([df_test, rf_series], axis=1)
+        
+        # Ensure same number of columns in both training and test datasets
+        train_cols = df_train_downsampled.columns
+        df_test_samecols = df_test[train_cols]
+        
+        # Combine training and test sets into one dataframe
+        df_downsampled = pd.concat([df_train_downsampled,df_test_samecols],axis=0)
+        
+        return df_downsampled
+    
     def extract_packet_features(self, filename = os.path.join(PCAP_DIR, 'master.pcap'), create_master=True, printout=False):
         """
         Unit that extracts wanted features out of packets in a packet capture file.
@@ -860,6 +865,36 @@ class WifiPipeline(Pipeline):
         
         assoc_count = pd.Series(assoc_pkt_counts, index=df_device.index)
         return assoc_count
+    
+    def downsample(self, X, y, df_test):
+        rds = RandomUnderSampler()
+        
+        # Resample
+        X_downsampled, y_downsampled = rds.fit_resample(X, y)
+    
+        # Recreate dataframe
+        X_downsampled = pd.DataFrame(data=X_downsampled, columns=X.columns)
+        y_downsampled = pd.DataFrame(data=y_downsampled, columns=['DeviceType'])
+    
+        # Onehot encode 'DeviceType'
+        devicetype_series = pd.get_dummies(y_downsampled['DeviceType'])
+        y_downsampled = pd.concat([y_downsampled, devicetype_series], axis=1)
+        y_downsampled = y_downsampled.drop(['DeviceType'],axis=1)
+    
+        # Combine X and y into one dataframe
+        df_train_downsampled = pd.concat([X_downsampled, y_downsampled], axis=1)
+        
+        # Reinsert Set and DeviceType columns to training dataset
+        df_train_downsampled['Set'] = 'train'
+    
+        # Ensure same number of columns in both training and test datasets
+        train_cols = df_train_downsampled.columns
+        df_test_samecols = df_test[train_cols]
+    
+        # Combine training and test sets into one dataframe
+        df_downsampled = pd.concat([df_train_downsampled,df_test_samecols],axis=0)    
+        
+        return df_downsampled
     
     def extract_packet_features(self, filename = os.path.join(PCAP_DIR, 'master.cap'), create_master=True, printout=False):
         """
