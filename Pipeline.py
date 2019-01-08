@@ -323,7 +323,7 @@ class Pipeline():
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba}
 #        return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds}
     
-    def downsample(X, y, df_test):
+    def downsample(self, X, y, df_test):
         rds = RandomUnderSampler()
         
         # Resample
