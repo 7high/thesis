@@ -43,7 +43,7 @@ class Pipeline():
     
         return cm_metrics
     
-    def create_csv_results(protocol, results):
+    def create_csv_results(self, protocol, results):
         header = ['Trial',
                   'Device', 'Classifier', 
                   'FN', 'FP', 'TN', 'TP', 
@@ -247,8 +247,6 @@ class Pipeline():
                                           'LDA': {'Classifier': lda_clf, 'CM': lda_cm, 'Metrics':lda_metrics}}
         
         total_time = time.time() - time_start
-        print "Total time (one vs all_classify):", total_time
-        print ""    
         
         return onevsall_dict, total_time
         
