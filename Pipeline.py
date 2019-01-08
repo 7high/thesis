@@ -195,7 +195,7 @@ class Pipeline():
             print metrics[i]
             print "---------------------------------------------------------"
             
-    def one_vs_all_classify(self, df, features_list, y_list, output='print'):
+    def one_vs_all_classify(self, df, features_list, y_list, printout=False):
         time_start = time.time()
         
         onevsall_dict = {}
@@ -235,14 +235,12 @@ class Pipeline():
 #            print "KNN Score:", knn_clf['Score'], "Time: ", knn_clf['Time']
 #            print "LDA Score:", lda_clf['Score'], "Time: ", lda_clf['Time']
             
-            if output == 'print':
+            if printout:
                 self.printout_cm_metrics(device_type,['RF','KNN','LDA'],[rf_cm, knn_cm, lda_cm],[rf_metrics, knn_metrics, lda_metrics])
                 
                 print "Total time (classifiers):", time_elapsed_clf
                 print ""
-            elif output == 'file':
-                print 'file output'
-                #TODO: Add option to output to file
+
             
             onevsall_dict[device_type] = {'RF': {'Classifier': rf_clf, 'CM': rf_cm, 'Metrics':rf_metrics},
                                           'KNN': {'Classifier': knn_clf, 'CM': knn_cm, 'Metrics':knn_metrics},
