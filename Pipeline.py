@@ -473,12 +473,12 @@ class BLEPipeline(Pipeline):
         X_downsampled = pd.DataFrame(data=X_downsampled, columns=X.columns)
         y_downsampled = pd.DataFrame(data=y_downsampled, columns=['DeviceType'])     
         
-        # Onehot encode 'RFChannel' and 'PDUType' in training set
-        rfchannel_series = pd.get_dummies(X_downsampled['RFChannel'])
+        # Onehot encode 'RFChannel' in training set
+        rfchannel_series = pd.get_dummies(X_downsampled['RFChannel'], prefix="Channel")
         X_downsampled = pd.concat([X_downsampled, rfchannel_series], axis=1)
         X_downsampled = X_downsampled.drop(['RFChannel'],axis=1)
         
-        # Onehot encode 'PDUType'
+        # Onehot encode 'PDUType' in training set
         pdutype_series = pd.get_dummies(X_downsampled['PDUType'])
         X_downsampled = pd.concat([X_downsampled, pdutype_series], axis=1)
         X_downsampled = X_downsampled.drop(['PDUType'],axis=1)
@@ -488,16 +488,16 @@ class BLEPipeline(Pipeline):
         y_downsampled = pd.concat([y_downsampled, devicetype_series], axis=1)
         y_downsampled = y_downsampled.drop(['DeviceType'],axis=1)
         
+        # Onehot encode 'RFChannel' in test set
+        rf_series = pd.get_dummies(df_test["RFChannel"], prefix="Channel")
+        df_test = pd.concat([df_test, rf_series], axis=1)
+        
         # Combine X and y into one dataframe
         df_train_downsampled = pd.concat([X_downsampled, y_downsampled], axis=1)
         
         # Reinsert Set column to training dataset
         df_train_downsampled['Set'] = 'train'
-        
-        # Onehot encode 'RFChannel' in test set
-        rf_series = pd.get_dummies(df_test["RFChannel"])
-        df_test = pd.concat([df_test, rf_series], axis=1)
-        
+                
         # Ensure same number of columns in both training and test datasets
         train_cols = df_train_downsampled.columns
         df_test_samecols = df_test[train_cols]
