@@ -2,6 +2,7 @@ import csv, glob, itertools, os, shutil, time
 import numpy as np
 import pandas as pd
 import pyshark
+import scipy.stats as st
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier
@@ -54,14 +55,16 @@ class Pipeline():
         # Calculate metrics
         accuracy = (cm_metrics["TP"] + cm_metrics["TN"]) / cm_metrics.iloc[0:3].sum(axis=1)
         precision = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FP"])
-        recall = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FN"])
-        f_one = 2 * (precision * recall) / (precision + recall)
+        tpr = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FN"])
+        fpr = cm_metrics["FP"] / (cm_metrics["FP"] + cm_metrics["TN"])
+        fnr = cm_metrics["FN"] / (cm_metrics["FN"] + cm_metrics["TP"])
         
         # Store into df
         cm_metrics["Accuracy"] = accuracy
+        cm_metrics["TPR"] = tpr
+        cm_metrics["FPR"] = fpr
+        cm_metrics["FNR"] = fnr
         cm_metrics["Precision"] = precision
-        cm_metrics["Recall"] = recall
-        cm_metrics["F1"] = f_one
     
         return cm_metrics
     
@@ -86,7 +89,7 @@ class Pipeline():
         header = ['Trial',
                   'Device', 'Classifier', 
                   'FN', 'FP', 'TN', 'TP', 
-                  'Accuracy', 'Precision', 'Recall', 'F1']
+                  'Accuracy','TPR', 'FPR', 'FNR', 'Precision']
         
         with open(protocol + '-results.csv', mode='w') as results_file:
             results_writer = csv.writer(results_file, delimiter=',', 
@@ -103,6 +106,21 @@ class Pipeline():
                         results_writer.writerow([i+1, device_type, classifier] + list(result[0][device_type][classifier]['Metrics'].iloc[0,:].values))
 
 
+    def get_mean_metric(self, df_dt):
+    
+        metrics = ['Accuracy', 'TPR', 'FPR', 'FNR', 'Precision']
+        output = []
+        for metric in metrics:
+            # Calculate mean, std dev, and 95% confidence interval
+            mean = df_dt[metric].mean(axis=0)
+            sd = df_dt[metric].std(axis=0)
+            ci = (2*sd) / np.sqrt(len(df_dt[metric])-1)
+            
+            output.append(mean)
+            output.append(sd)
+            output.append(ci)       
+            
+        return output
     
     def k_neighbors_classifier(self, X_train, y_train, X_test, y_test):
         """
@@ -509,7 +527,44 @@ class Pipeline():
         self.feature_importances.append(self.randomforest.feature_importances_)
         
         return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba, 'True':y_test}
+
+    def report_metrics_across(self, category, df_alloutput):
+        # Check for valid category
+        if category not in ['Device','Classifier']:
+            print "Invalid category. Only 'Device' or 'Classifiers'"
+            return
+        
+        # Calculate performance across device types
+        df_performance = pd.DataFrame(columns=['Accuracy', 'SD_Accuracy', 'CI_Accuracy',
+                                                      'TPR', 'SD_TPR', 'CI_TPR',
+                                                      'FPR', 'SD_FPR', 'CI_FPR',
+                                                      'FNR', 'SD_FNR', 'CI_FNR',
+                                                      'Precision', 'SD_Precision', 'CI_Precision']) 
     
+        for x in df_alloutput[category].unique():
+            df_dt = df_alloutput[df_alloutput[category]== x]
+    
+            row = self.get_mean_metric(df_dt)
+            series = pd.Series(data=row, name=x, index=df_performance.columns)
+            df_performance = df_performance.append(series)
+            
+        return df_performance
+
+    def store_trial_results(self, results):
+        # Extract results from nested dicts
+        list_extractedresults = []
+        for i, result in enumerate(results):
+                        for device_type, results_device in result[0].iteritems():        
+                            for classifier,result_classifier in results_device.iteritems():
+                                list_extractedresults.append([i+1, device_type, classifier] + list(result[0][device_type][classifier]['Metrics'].iloc[0,:].values))
+    
+        # Store into dataframe
+        columns=['Trial','Device', 'Classifier', 
+                 'FN', 'FP', 'TN', 'TP', 
+                 'Accuracy','TPR', 'FPR', 'FNR', 'Precision']
+        df_alloutput = pd.DataFrame(data=list_extractedresults,columns=columns)
+        
+        return df_alloutput
     
 #------------------------------------------------------------------------------------------------------------
 class BLEPipeline(Pipeline):
