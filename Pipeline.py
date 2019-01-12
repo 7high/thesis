@@ -89,7 +89,7 @@ class Pipeline():
             metric
         """
     
-        metrics = ['Accuracy', 'TPR', 'FPR', 'FNR', 'Precision']
+        metrics = ['Accuracy', 'TPR', 'FPR', 'FNR', 'Precision', 'AUC']
         output = []
         for metric in metrics:
             # Calculate mean, std dev, and 95% confidence interval
@@ -537,7 +537,8 @@ class Pipeline():
                                                       'TPR', 'SD_TPR', 'CI_TPR',
                                                       'FPR', 'SD_FPR', 'CI_FPR',
                                                       'FNR', 'SD_FNR', 'CI_FNR',
-                                                      'Precision', 'SD_Precision', 'CI_Precision']) 
+                                                      'Precision', 'SD_Precision', 'CI_Precision',
+                                                      'AUC', 'SD_AUC', 'CI_AUC']) 
     
         for x in df_alloutput[category].unique():
             df_dt = df_alloutput[df_alloutput[category]== x]
