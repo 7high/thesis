@@ -55,15 +55,11 @@ class Pipeline():
         # Calculate metrics
         accuracy = (cm_metrics["TP"] + cm_metrics["TN"]) / cm_metrics.iloc[0:3].sum(axis=1)
         precision = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FP"])
-        tpr = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FN"])
-        fpr = cm_metrics["FP"] / (cm_metrics["FP"] + cm_metrics["TN"])
-        fnr = cm_metrics["FN"] / (cm_metrics["FN"] + cm_metrics["TP"])
+        recall = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FN"])
         
         # Store into df
         cm_metrics["Accuracy"] = accuracy
-        cm_metrics["TPR"] = tpr
-        cm_metrics["FPR"] = fpr
-        cm_metrics["FNR"] = fnr
+        cm_metrics["Recall"] = recall
         cm_metrics["Precision"] = precision
     
         return cm_metrics
@@ -89,7 +85,7 @@ class Pipeline():
             metric
         """
     
-        metrics = ['Accuracy', 'TPR', 'FPR', 'FNR', 'Precision', 'AUC']
+        metrics = ['Accuracy', 'Recall', 'Precision', 'AUC']
         output = []
         for metric in metrics:
             # Calculate mean, std dev, and 95% confidence interval
@@ -534,9 +530,7 @@ class Pipeline():
         
         # Calculate performance across device types
         df_performance = pd.DataFrame(columns=['Accuracy', 'SD_Accuracy', 'CI_Accuracy',
-                                                      'TPR', 'SD_TPR', 'CI_TPR',
-                                                      'FPR', 'SD_FPR', 'CI_FPR',
-                                                      'FNR', 'SD_FNR', 'CI_FNR',
+                                                      'Recall', 'SD_Recall', 'CI_Recall',
                                                       'Precision', 'SD_Precision', 'CI_Precision',
                                                       'AUC', 'SD_AUC', 'CI_AUC']) 
     
@@ -576,7 +570,7 @@ class Pipeline():
         # Store into dataframe
         columns=['Trial','Device', 'Classifier', 
                  'FN', 'FP', 'TN', 'TP', 
-                 'Accuracy','TPR', 'FPR', 'FNR', 'Precision']
+                 'Accuracy','Recall', 'Precision']
         df_alloutput = pd.DataFrame(data=list_extractedresults,columns=columns)
         
         return df_alloutput
