@@ -68,43 +68,6 @@ class Pipeline():
     
         return cm_metrics
     
-    def create_csv_results(self, protocol, results):
-        """
-        Creates a csv file containing the results
-        
-        Parameters
-        ----------
-        protocol: (str) protocol (ble or wifi)
-        results: (list of dictionaries) contains the results from all trials 
-        
-        Output
-        ------
-        'protocol'-results.csv: csv file of all results. Found in current dir
-        
-        Returns
-        -------
-        None
-        """
-        
-        header = ['Trial',
-                  'Device', 'Classifier', 
-                  'FN', 'FP', 'TN', 'TP', 
-                  'Accuracy','TPR', 'FPR', 'FNR', 'Precision']
-        
-        with open(protocol + '-results.csv', mode='w') as results_file:
-            results_writer = csv.writer(results_file, delimiter=',', 
-                                        quotechar='"', 
-                                        quoting=csv.QUOTE_MINIMAL)
-    
-            # Print header
-            results_writer.writerow(header)
-            
-            # Print info
-            for i, result in enumerate(results):
-                for device_type, results_device in result[0].iteritems():        
-                    for classifier,result_classifier in results_device.iteritems():
-                        results_writer.writerow([i+1, device_type, classifier] + list(result[0][device_type][classifier]['Metrics'].iloc[0,:].values))
-
 
     def get_mean_metric(self, df_dt):
         """
@@ -616,7 +579,7 @@ class Pipeline():
         df_alloutput = pd.DataFrame(data=list_extractedresults,columns=columns)
         
         return df_alloutput
-    
+
 #------------------------------------------------------------------------------------------------------------
 class BLEPipeline(Pipeline):
     # Global Variables    
