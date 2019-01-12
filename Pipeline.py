@@ -107,6 +107,24 @@ class Pipeline():
 
 
     def get_mean_metric(self, df_dt):
+        """
+        Calculates the mean value, standard deviation, and 95% confidence 
+        interval margin of error (plus-minus) of the accuracy, TPR, FPR, FNR, 
+        and precision metrics.  
+        
+        Parameters
+        ----------
+        df_dt: (dataframe) df containing all trial results        
+        
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        output: (list) a list with the mean, std dev, and 95% CI MOE of each
+            metric
+        """
     
         metrics = ['Accuracy', 'TPR', 'FPR', 'FNR', 'Precision']
         output = []
@@ -529,6 +547,23 @@ class Pipeline():
         return {'Score' : score, 'Time' : time_elapsed, 'Pred': preds, 'Pred_Proba':preds_proba, 'True':y_test}
 
     def report_metrics_across(self, category, df_alloutput):
+        """
+        Creates a df to report the performance metrics calculated across either
+        devicetypes or classifiers. Includes mean values, std dev, and 95% CI
+        margins of error
+        
+        Parameters
+        ----------
+        df_alloutput: (dataframe) results of trials
+        
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        df_performance: (dataframe) performance report
+        """
         # Check for valid category
         if category not in ['Device','Classifier']:
             print "Invalid category. Only 'Device' or 'Classifiers'"
@@ -551,6 +586,22 @@ class Pipeline():
         return df_performance
 
     def store_trial_results(self, results):
+        """
+        Stores trial results into a df for simple management
+        
+        Parameters
+        ----------
+        results (nested dict): all results in a nested dict that requires
+            manipulation for easy readability
+        
+        Output
+        ------
+        None
+        
+        Returns
+        -------
+        df_alloutput: (dataframe) all results in a dataframe
+        """
         # Extract results from nested dicts
         list_extractedresults = []
         for i, result in enumerate(results):
