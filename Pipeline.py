@@ -53,7 +53,11 @@ class Pipeline():
         cm_metrics = pd.DataFrame({'TP':tp, 'FP':fp, 'TN':tn, 'FN':fn}, index=list(conf_matrix.columns))
     
         # Calculate metrics
-        accuracy = (cm_metrics["TP"] + cm_metrics["TN"]) / cm_metrics.iloc[0:3].sum(axis=1)
+        tpr = (cm_metrics["TP"]) / (cm_metrics["TP"] + cm_metrics["FN"])
+        tnr = (cm_metrics["TN"]) / (cm_metrics["TN"] + cm_metrics["FP"])
+        
+#        accuracy = (cm_metrics["TP"] + cm_metrics["TN"]) / cm_metrics.iloc[0:3].sum(axis=1)
+        accuracy = (tpr + tnr) / 2
         precision = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FP"])
         recall = cm_metrics["TP"] / (cm_metrics["TP"] + cm_metrics["FN"])
         
