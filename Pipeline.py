@@ -69,7 +69,7 @@ class Pipeline():
         return cm_metrics
     
 
-    def get_mean_metric(self, df_dt):
+    def get_mean_metric(self, df_dt, metrics):
         """
         Calculates the mean value, standard deviation, and 95% confidence 
         interval margin of error (plus-minus) of the accuracy, TPR, FPR, FNR, 
@@ -541,7 +541,7 @@ class Pipeline():
         for x in df_alloutput[category].unique():
             df_dt = df_alloutput[df_alloutput[category]== x]
     
-            row = self.get_mean_metric(df_dt)
+            row = self.get_mean_metric(df_dt, ['Accuracy', 'Recall', 'Precision', 'AUC'])
             series = pd.Series(data=row, name=x, index=df_performance.columns)
             df_performance = df_performance.append(series)
             
