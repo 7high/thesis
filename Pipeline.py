@@ -68,6 +68,19 @@ class Pipeline():
     
         return cm_metrics
     
+    def get_header(self, metric_names):
+        """
+        Helper function to easily create mean validity headers
+        """
+        header = []
+        for x in metric_names:
+            a = 'SD_' + x
+            b = 'CI_' + x
+    
+            header.append(x)
+            header.append(a)
+            header.append(b)
+        return header
 
     def get_mean_metric(self, df_dt, metrics):
         """
@@ -89,7 +102,7 @@ class Pipeline():
             metric
         """
     
-        metrics = ['Accuracy', 'Recall', 'Precision', 'AUC']
+#        metrics = ['Accuracy', 'Recall', 'Precision', 'AUC']
         output = []
         for metric in metrics:
             # Calculate mean, std dev, and 95% confidence interval
