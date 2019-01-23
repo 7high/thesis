@@ -219,16 +219,10 @@ class Pipeline():
         Returns
         -------
         df_confusion (df): a confusion matrix with the true positive, false positive, true negative and false negative counts
-        """
-        # Multiclass is mostly used for testing
-        if cm_type == 'multiclass':
-            # Decode device type from actual and predicted lists
-            df_actual = pd.DataFrame(y_actual, columns=labels, dtype=int)
-            df_preds = pd.DataFrame(y_pred, columns=labels, dtype=int)
-            
+        """            
         # Binary is used when comparing between only two classes
         # Used in one vs one & one vs all classification schemes
-        elif cm_type == 'binary':
+        if cm_type == 'binary':
             # Create array for the non-class 
             # i.e. if an observation is a positive class, the non-class will be negative
             y_actual_nonclass = np.logical_not(y_actual).astype(int)        
