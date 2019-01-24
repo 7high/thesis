@@ -930,13 +930,16 @@ class BLEPipeline(Pipeline):
         
         # One-hot encode device type (response variable)
         deviceType_series = pd.get_dummies(df["DeviceType"])
-        df = pd.concat([df, deviceType_series], axis=1)
-        
+        df = pd.concat([df, deviceType_series], axis=1)        
         
         # One-hot encode PDU_type
         df["PDUType"] = df["PDUTypeNum"].map(self.PDU_TYPES)
         pduType_series = pd.get_dummies(df["PDUType"])
         df = pd.concat([df, pduType_series], axis=1)
+        
+        #One hot encode RF channel
+        rfchannel_series = pd.get_dummies(df["RFChannel"], prefix='Channel')
+        df = pd.concat([df, rfchannel_series], axis=1)
         
         # Get number of associated packets for each packet
         list_assoc_pkts = []
