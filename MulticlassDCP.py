@@ -101,12 +101,13 @@ class MulticlassDCP():
     
         # Extract metrics and put into dataframe
         for k,v in metrics.iteritems():
-            mattcorr = pd.Series({metrics_list[0]:v[0]},name=k)
-            bacc = pd.Series({metrics_list[1]:v[1]},name=k)
-            recall = pd.Series(v[2],index=[metrics_list[2]+'_'+i.capitalize() for i in y_list], name=k.upper())
+            name = str(k).upper()
+            mattcorr = pd.Series({metrics_list[0]:v[0]},name=name)
+            bacc = pd.Series({metrics_list[1]:v[1]},name=name)
+            recall = pd.Series(v[2],index=[metrics_list[2]+'_'+i.capitalize() for i in y_list], name=name)
             
-            ave_prec = pd.Series({metrics_list[3]:v[3]},name=k)
-            prec = pd.Series(v[4],index=[metrics_list[4]+'_'+i.capitalize() for i in y_list], name=k.upper())           
+            ave_prec = pd.Series({metrics_list[3]:v[3]},name=name)
+            prec = pd.Series(v[4],index=[metrics_list[4]+'_'+i.capitalize() for i in y_list], name=name)           
             
             metric_series = pd.concat([mattcorr, bacc, recall, ave_prec, prec])
             metrics_df = pd.concat([metrics_df,metric_series], axis=1)
