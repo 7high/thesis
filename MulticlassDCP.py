@@ -119,48 +119,48 @@ class MulticlassDCP():
         
         return metrics_df
     
-    def run_multiclass(self, df_train, df_test, features_list, y_list, use_tuned=True):
-        # Initialize classifiers using tuned hyperparameters
-        if use_tuned:
-            knn = KNeighborsClassifier(n_neighbors=5)
-            lda = LinearDiscriminantAnalysis(n_components=1)
-            rf = RandomForestClassifier(max_features=7)  
-        else:
-            knn = KNeighborsClassifier()
-            lda = LinearDiscriminantAnalysis()
-            rf = RandomForestClassifier()  
-    
-        # Train classifiers
-        knn_model = knn.fit(df_train[features_list], df_train['DeviceType'])
-        lda_model = lda.fit(df_train[features_list], df_train['DeviceType'])
-        rf_model = rf.fit(df_train[features_list], df_train['DeviceType'])
-        
-        # Test classifiers
-        knn_preds = knn_model.predict(df_test[features_list])
-        lda_preds = lda_model.predict(df_test[features_list])
-        rf_preds = rf_model.predict(df_test[features_list])
-        
-        preds = dict(knn=knn_preds, lda=lda_preds, rf=rf_preds)
-        
-        # Score classifiers
-        metrics = {}
-        conf_matrices = {}
-        for classifier,pred in preds.iteritems():
-            mc = matthews_corrcoef(df_test['DeviceType'], pred)
-            
-            bacc = balanced_accuracy_score(df_test['DeviceType'], pred)
-            recall = recall_score(df_test['DeviceType'], pred, average=None)
-            
-            ave_prec = precision_score(df_test['DeviceType'], pred, average='macro')
-            prec = precision_score(df_test['DeviceType'], pred, average=None)
-            
-            conf_matrices[classifier] = confusion_matrix(df_test['DeviceType'], pred, labels=y_list)
-            metrics[classifier] = mc, bacc, recall, ave_prec, prec
-        
-        # Feature importance
-        feature_importance = rf.feature_importances_
-        
-        return preds, metrics, conf_matrices, feature_importance
+#    def run_multiclass(self, df_train, df_test, features_list, y_list, use_tuned=True):
+#        # Initialize classifiers using tuned hyperparameters
+#        if use_tuned:
+#            knn = KNeighborsClassifier(n_neighbors=5)
+#            lda = LinearDiscriminantAnalysis(n_components=1)
+#            rf = RandomForestClassifier(max_features=7)  
+#        else:
+#            knn = KNeighborsClassifier()
+#            lda = LinearDiscriminantAnalysis()
+#            rf = RandomForestClassifier()  
+#    
+#        # Train classifiers
+#        knn_model = knn.fit(df_train[features_list], df_train['DeviceType'])
+#        lda_model = lda.fit(df_train[features_list], df_train['DeviceType'])
+#        rf_model = rf.fit(df_train[features_list], df_train['DeviceType'])
+#        
+#        # Test classifiers
+#        knn_preds = knn_model.predict(df_test[features_list])
+#        lda_preds = lda_model.predict(df_test[features_list])
+#        rf_preds = rf_model.predict(df_test[features_list])
+#        
+#        preds = dict(knn=knn_preds, lda=lda_preds, rf=rf_preds)
+#        
+#        # Score classifiers
+#        metrics = {}
+#        conf_matrices = {}
+#        for classifier,pred in preds.iteritems():
+#            mc = matthews_corrcoef(df_test['DeviceType'], pred)
+#            
+#            bacc = balanced_accuracy_score(df_test['DeviceType'], pred)
+#            recall = recall_score(df_test['DeviceType'], pred, average=None)
+#            
+#            ave_prec = precision_score(df_test['DeviceType'], pred, average='macro')
+#            prec = precision_score(df_test['DeviceType'], pred, average=None)
+#            
+#            conf_matrices[classifier] = confusion_matrix(df_test['DeviceType'], pred, labels=y_list)
+#            metrics[classifier] = mc, bacc, recall, ave_prec, prec
+#        
+#        # Feature importance
+#        feature_importance = rf.feature_importances_
+#        
+#        return preds, metrics, conf_matrices, feature_importance
     
     def tune_gridsearch(self, classifier, param_grid, df_train, features_list, y_list): 
         start_time = time.time()
@@ -559,6 +559,49 @@ class BLEMulticlassDCP(MulticlassDCP):
             print "ignored: ", pkt.number            
 
 
+    def run_multiclass(self, df_train, df_test, features_list, y_list, use_tuned=True):
+            # Initialize classifiers using tuned hyperparameters
+            if use_tuned:
+                knn = KNeighborsClassifier(n_neighbors=5)
+                lda = LinearDiscriminantAnalysis(priors=[0.59063441, 0.23399223, 0.17537336])
+                rf = RandomForestClassifier(max_features=7)  
+            else:
+                knn = KNeighborsClassifier()
+                lda = LinearDiscriminantAnalysis(priors=[0.59063441, 0.23399223, 0.17537336])
+                rf = RandomForestClassifier()  
+        
+            # Train classifiers
+            knn_model = knn.fit(df_train[features_list], df_train['DeviceType'])
+            lda_model = lda.fit(df_train[features_list], df_train['DeviceType'])
+            rf_model = rf.fit(df_train[features_list], df_train['DeviceType'])
+            
+            # Test classifiers
+            knn_preds = knn_model.predict(df_test[features_list])
+            lda_preds = lda_model.predict(df_test[features_list])
+            rf_preds = rf_model.predict(df_test[features_list])
+            
+            preds = dict(knn=knn_preds, lda=lda_preds, rf=rf_preds)
+            
+            # Score classifiers
+            metrics = {}
+            conf_matrices = {}
+            for classifier,pred in preds.iteritems():
+                mc = matthews_corrcoef(df_test['DeviceType'], pred)
+                
+                bacc = balanced_accuracy_score(df_test['DeviceType'], pred)
+                recall = recall_score(df_test['DeviceType'], pred, average=None)
+                
+                ave_prec = precision_score(df_test['DeviceType'], pred, average='macro')
+                prec = precision_score(df_test['DeviceType'], pred, average=None)
+                
+                conf_matrices[classifier] = confusion_matrix(df_test['DeviceType'], pred, labels=y_list)
+                metrics[classifier] = mc, bacc, recall, ave_prec, prec
+            
+            # Feature importance
+            feature_importance = rf.feature_importances_
+            
+            return preds, metrics, conf_matrices, feature_importance
+
 
 #------------------------------------------------------------------------------------------------------------
 class WifiMulticlassDCP(MulticlassDCP):
@@ -949,6 +992,48 @@ class WifiMulticlassDCP(MulticlassDCP):
             new_filename = device_name[filename_noextension.replace('.',':')] + '.csv'
             os.rename(directory + filename, directory + new_filename)
             
+    def run_multiclass(self, df_train, df_test, features_list, y_list, use_tuned=True):
+        # Initialize classifiers using tuned hyperparameters
+        if use_tuned:
+            knn = KNeighborsClassifier(n_neighbors=11)
+            lda = LinearDiscriminantAnalysis(priors=[0.61678342, 0.37815795, 0.00505862])
+            rf = RandomForestClassifier(max_features=2)  
+        else:
+            knn = KNeighborsClassifier()
+            lda = LinearDiscriminantAnalysis([0.61678342, 0.37815795, 0.00505862])
+            rf = RandomForestClassifier()  
+    
+        # Train classifiers
+        knn_model = knn.fit(df_train[features_list], df_train['DeviceType'])
+        lda_model = lda.fit(df_train[features_list], df_train['DeviceType'])
+        rf_model = rf.fit(df_train[features_list], df_train['DeviceType'])
+        
+        # Test classifiers
+        knn_preds = knn_model.predict(df_test[features_list])
+        lda_preds = lda_model.predict(df_test[features_list])
+        rf_preds = rf_model.predict(df_test[features_list])
+        
+        preds = dict(knn=knn_preds, lda=lda_preds, rf=rf_preds)
+        
+        # Score classifiers
+        metrics = {}
+        conf_matrices = {}
+        for classifier,pred in preds.iteritems():
+            mc = matthews_corrcoef(df_test['DeviceType'], pred)
+            
+            bacc = balanced_accuracy_score(df_test['DeviceType'], pred)
+            recall = recall_score(df_test['DeviceType'], pred, average=None)
+            
+            ave_prec = precision_score(df_test['DeviceType'], pred, average='macro')
+            prec = precision_score(df_test['DeviceType'], pred, average=None)
+            
+            conf_matrices[classifier] = confusion_matrix(df_test['DeviceType'], pred, labels=y_list)
+            metrics[classifier] = mc, bacc, recall, ave_prec, prec
+        
+        # Feature importance
+        feature_importance = rf.feature_importances_
+        
+        return preds, metrics, conf_matrices, feature_importance
 #------------------------------------------------------------------------------
             
 if __name__ == "main":
