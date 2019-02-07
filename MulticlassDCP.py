@@ -559,7 +559,7 @@ class BLEMulticlassDCP(MulticlassDCP):
             print "ignored: ", pkt.number            
 
 
-    def run_multiclass(self, df_train, df_test, features_list, y_list, use_tuned=True):
+    def run_multiclass(self, df_train, df_test, features_list, y_list, use_tuned=True, use_priors=True):
             # Initialize classifiers using tuned hyperparameters
             if use_tuned:
                 knn = KNeighborsClassifier(n_neighbors=5)
@@ -567,8 +567,12 @@ class BLEMulticlassDCP(MulticlassDCP):
                 rf = RandomForestClassifier(max_features=7)  
             else:
                 knn = KNeighborsClassifier()
-                lda = LinearDiscriminantAnalysis(priors=[0.59063441, 0.23399223, 0.17537336])
                 rf = RandomForestClassifier()  
+                
+                if use_priors:
+                    lda = LinearDiscriminantAnalysis(priors=[0.59063441, 0.23399223, 0.17537336])
+                else:
+                    lda = LinearDiscriminantAnalysis()
         
             # Train classifiers
             knn_model = knn.fit(df_train[features_list], df_train['DeviceType'])
@@ -992,7 +996,7 @@ class WifiMulticlassDCP(MulticlassDCP):
             new_filename = device_name[filename_noextension.replace('.',':')] + '.csv'
             os.rename(directory + filename, directory + new_filename)
             
-    def run_multiclass(self, df_train, df_test, features_list, y_list, use_tuned=True):
+    def run_multiclass(self, df_train, df_test, features_list, y_list, use_tuned=True, use_priors=True):
         # Initialize classifiers using tuned hyperparameters
         if use_tuned:
             knn = KNeighborsClassifier(n_neighbors=11)
@@ -1000,8 +1004,12 @@ class WifiMulticlassDCP(MulticlassDCP):
             rf = RandomForestClassifier(max_features=2)  
         else:
             knn = KNeighborsClassifier()
-            lda = LinearDiscriminantAnalysis([0.61678342, 0.37815795, 0.00505862])
             rf = RandomForestClassifier()  
+            
+            if use_priors:
+                    lda = LinearDiscriminantAnalysis(priors=[0.61678342, 0.37815795, 0.00505862])
+            else:
+                    lda = LinearDiscriminantAnalysis()
     
         # Train classifiers
         knn_model = knn.fit(df_train[features_list], df_train['DeviceType'])
